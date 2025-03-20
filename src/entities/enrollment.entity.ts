@@ -2,8 +2,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Course } from './course.entity';
 
 @Entity('enrollments')
 export class Enrollment {
@@ -15,6 +18,10 @@ export class Enrollment {
 
   @Column()
   course_id: number;
+
+  @ManyToOne(() => Course, { eager: false })
+  @JoinColumn({ name: 'course_id' })
+  course: Course;
 
   @CreateDateColumn()
   enrolled_at: Date;
