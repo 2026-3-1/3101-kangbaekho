@@ -3,6 +3,14 @@
 /node_modules
 /build
 
+# Monorepo
+BE/node_modules/
+FE/node_modules/
+BE/dist/
+FE/dist/
+BE/.env
+*.local
+
 # Logs
 logs
 *.log

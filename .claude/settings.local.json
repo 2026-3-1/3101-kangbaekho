@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(npm install:*)",
-      "Bash(GIT_AUTHOR_DATE=\"2025-03-17T23:00:00+09:00\" GIT_COMMITTER_DATE=\"2025-03-17T23:00:00+09:00\" git commit -m \"$\\(cat <<''EOF'':*)"
+      "Bash(GIT_AUTHOR_DATE=\"2025-03-17T23:00:00+09:00\" GIT_COMMITTER_DATE=\"2025-03-17T23:00:00+09:00\" git commit -m \"$\\(cat <<''EOF'':*)",
+      "Bash(npm create:*)"
     ]
   }
 }
