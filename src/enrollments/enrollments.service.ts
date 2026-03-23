@@ -6,6 +6,8 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Enrollment } from '../entities/enrollment.entity';
+import { User } from '../entities/user.entity';
+import { Course } from '../entities/course.entity';
 import { CreateEnrollmentDto } from './dto/create-enrollment.dto';
 
 @Injectable()
@@ -13,10 +15,26 @@ export class EnrollmentsService {
   constructor(
     @InjectRepository(Enrollment)
     private readonly enrollmentRepository: Repository<Enrollment>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(Course)
+    private readonly courseRepository: Repository<Course>,
   ) {}
 
   async create(createEnrollmentDto: CreateEnrollmentDto): Promise<Enrollment> {
     const { user_id, course_id } = createEnrollmentDto;
+
+    const user = await this.userRepository.findOne({ where: { id: user_id } });
+    if (!user) {
+      throw new NotFoundException(`User #${user_id} not found`);
+    }
+
+    const course = await this.courseRepository.findOne({
+      where: { id: course_id },
+    });
+    if (!course) {
+      throw new NotFoundException(`Course #${course_id} not found`);
+    }
 
     const existing = await this.enrollmentRepository.findOne({
       where: { user_id, course_id },

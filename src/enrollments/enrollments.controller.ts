@@ -24,6 +24,8 @@ export class EnrollmentsController {
   @HttpCode(201)
   @ApiOperation({ summary: '수강 신청' })
   @ApiResponse({ status: 201, description: '수강 신청 성공' })
+  @ApiResponse({ status: 400, description: '필수값 누락' })
+  @ApiResponse({ status: 404, description: '사용자 또는 강의를 찾을 수 없음' })
   @ApiResponse({ status: 409, description: '이미 수강 신청된 강의' })
   create(@Body() createEnrollmentDto: CreateEnrollmentDto) {
     return this.enrollmentsService.create(createEnrollmentDto);

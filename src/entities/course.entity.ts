@@ -23,7 +23,7 @@ export class Course {
   @Column()
   category: string;
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column('int')
   price: number;
 
   @Column({ nullable: true })

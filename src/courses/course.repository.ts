@@ -12,8 +12,16 @@ export class CourseRepository extends Repository<Course> {
     category: string | undefined,
     page: number,
     limit: number,
-  ): Promise<[Course[], number]> {
-    const qb = this.createQueryBuilder('course');
+  ): Promise<[Partial<Course>[], number]> {
+    const qb = this.createQueryBuilder('course').select([
+      'course.id',
+      'course.title',
+      'course.instructor',
+      'course.category',
+      'course.price',
+      'course.thumbnail_url',
+      'course.created_at',
+    ]);
 
     if (category) {
       qb.where('course.category = :category', { category });
