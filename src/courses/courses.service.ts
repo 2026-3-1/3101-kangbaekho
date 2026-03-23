@@ -12,7 +12,7 @@ export class CoursesService {
     category: string | undefined,
     page: number,
     limit: number,
-  ): Promise<{ data: Course[]; total: number; page: number; limit: number }> {
+  ): Promise<{ data: Partial<Course>[]; total: number; page: number; limit: number }> {
     const [data, total] = await this.courseRepository.findWithPagination(
       category,
       page,
