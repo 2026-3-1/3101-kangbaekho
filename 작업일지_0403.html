@@ -33,7 +33,8 @@
     프론트엔드와 NestJS 백엔드 API를 실제로 연동하였다. 기존에 Mock 데이터 기반으로 동작하던
     AppContext의 모든 상태 관리 로직을 실제 HTTP 요청으로 교체하였으며, 별도의 API 서비스 레이어를
     신규 생성하여 fetch 호출을 중앙화하였다. Vite 개발 서버의 프록시 설정과 NestJS의 CORS 설정을
-    함께 적용하여 크로스 오리진 이슈 없이 연동이 가능하도록 구성하였다.
+    함께 적용하여 크로스 오리진 이슈 없이 연동이 가능하도록 구성하였다. 또한 루트 package.json의
+    workspaces 설정을 제거하고 BE/FE 각각 독립 실행 구조로 정리하였다.
   </p>
 
   <hr />
@@ -50,7 +51,8 @@
     강의 추가·수정·삭제·수강 신청·수강 취소 모두 async/await 기반 API 호출로 전환,
     currentUser 상태를 localStorage에 영속화하여 새로고침 후에도 유지되도록 처리,
     각 페이지(CourseDetailPage, CourseFormPage, UserRegisterPage, EnrollmentListPage) 이벤트 핸들러를 async 함수로 변환 및 에러 핸들링 추가,
-    currentUser가 null인 경우 Navbar, EnrollmentListPage, CourseDetailPage에서 안전하게 처리.
+    currentUser가 null인 경우 Navbar, EnrollmentListPage, CourseDetailPage에서 안전하게 처리,
+    루트 package.json workspaces/scripts 제거 및 루트 node_modules 삭제 — BE/FE 독립 실행 구조로 정리.
   </p>
 
   <hr />
@@ -64,6 +66,8 @@
     수강 목록 페이지의 경우 기존에 Context의 courses 배열에서 find로 강의를 찾던 방식을,
     백엔드 enrollments 응답에 course 관계(relations: ['course'])가 포함되어 있어 이를 우선 사용하고
     없을 경우 courses 배열에서 fallback하는 방식으로 개선하였다.
+    모노레포 구조에서 루트 node_modules에 class-validator가 없어 NestJS ValidationPipe 경고가
+    발생하였고, workspaces를 제거하고 BE/FE를 각각 독립 실행하는 방식으로 해결하였다.
   </p>
 </body>
 </html>

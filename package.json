@@ -1,10 +1,4 @@
 {
   "name": "online-lecture-platform",
-  "private": true,
-  "workspaces": ["BE", "FE"],
-  "scripts": {
-    "dev:be": "npm run start:dev --workspace=BE",
-    "dev:fe": "npm run dev --workspace=FE",
-    "build:fe": "npm run build --workspace=FE"
-  }
+  "private": true
 }
