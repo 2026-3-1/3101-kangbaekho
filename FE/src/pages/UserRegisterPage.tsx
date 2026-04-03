@@ -25,17 +25,19 @@ export default function UserRegisterPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
-    const newUser = addUser(form.name, form.email, form.role);
-    setSuccess(true);
-
-    setTimeout(() => {
+    try {
+      const newUser = await addUser(form.name, form.email, form.role);
       setCurrentUser(newUser);
-      navigate('/');
-    }, 2000);
+      setSuccess(true);
+      setTimeout(() => navigate('/'), 2000);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : '회원가입에 실패했습니다.';
+      setErrors((p) => ({ ...p, email: msg }));
+    }
   };
 
   if (success) {

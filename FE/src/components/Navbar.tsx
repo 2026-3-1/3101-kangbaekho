@@ -34,7 +34,9 @@ export default function Navbar() {
         </div>
         <div style={styles.userInfo}>
           <span style={styles.userBadge}>
-            {currentUser.role === 'admin' ? '👑' : '👤'} {currentUser.name}
+            {currentUser
+              ? `${currentUser.role === 'admin' ? '👑' : '👤'} ${currentUser.name}`
+              : '👤 게스트'}
           </span>
         </div>
       </div>

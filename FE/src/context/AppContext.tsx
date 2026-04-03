@@ -1,97 +1,105 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Course, User, Enrollment } from '../types';
-import {
-  initialCourses,
-  initialUsers,
-  initialEnrollments,
-} from '../data/mockData';
+import { courseApi, userApi, enrollmentApi } from '../services/api';
 
 interface AppContextType {
   courses: Course[];
-  users: User[];
   enrollments: Enrollment[];
-  currentUser: User;
-  addCourse: (course: Omit<Course, 'id' | 'created_at' | 'updated_at'>) => void;
-  updateCourse: (id: number, data: Partial<Course>) => void;
-  deleteCourse: (id: number) => void;
-  addEnrollment: (userId: number, courseId: number) => void;
-  cancelEnrollment: (enrollmentId: number) => void;
-  addUser: (name: string, email: string, role?: string) => User;
+  currentUser: User | null;
+  loading: boolean;
+  error: string | null;
+  addCourse: (course: Omit<Course, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
+  updateCourse: (id: number, data: Partial<Course>) => Promise<void>;
+  deleteCourse: (id: number) => Promise<void>;
+  addEnrollment: (userId: number, courseId: number) => Promise<void>;
+  cancelEnrollment: (enrollmentId: number) => Promise<void>;
+  addUser: (name: string, email: string, role?: string) => Promise<User>;
   setCurrentUser: (user: User) => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
 
+function loadStoredUser(): User | null {
+  try {
+    const raw = localStorage.getItem('currentUser');
+    return raw ? (JSON.parse(raw) as User) : null;
+  } catch {
+    return null;
+  }
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [courses, setCourses] = useState<Course[]>(initialCourses);
-  const [users, setUsers] = useState<User[]>(initialUsers);
-  const [enrollments, setEnrollments] =
-    useState<Enrollment[]>(initialEnrollments);
-  const [currentUser, setCurrentUser] = useState<User>(initialUsers[0]);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const [currentUser, setCurrentUserState] = useState<User | null>(loadStoredUser);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const addCourse = (
-    courseData: Omit<Course, 'id' | 'created_at' | 'updated_at'>
-  ) => {
-    const newCourse: Course = {
-      ...courseData,
-      id: Math.max(0, ...courses.map((c) => c.id)) + 1,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    setCourses((prev) => [...prev, newCourse]);
+  const setCurrentUser = (user: User) => {
+    localStorage.setItem('currentUser', JSON.stringify(user));
+    setCurrentUserState(user);
   };
 
-  const updateCourse = (id: number, data: Partial<Course>) => {
-    setCourses((prev) =>
-      prev.map((c) =>
-        c.id === id ? { ...c, ...data, updated_at: new Date().toISOString() } : c
-      )
-    );
+  // 강의 목록 로드
+  useEffect(() => {
+    courseApi
+      .getAll()
+      .then((res) => setCourses(res.data))
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  // 현재 사용자의 수강 목록 로드
+  useEffect(() => {
+    if (!currentUser) {
+      setEnrollments([]);
+      return;
+    }
+    userApi
+      .getEnrollments(currentUser.id)
+      .then(setEnrollments)
+      .catch(() => setEnrollments([]));
+  }, [currentUser]);
+
+  const addCourse = async (courseData: Omit<Course, 'id' | 'created_at' | 'updated_at'>) => {
+    const created = await courseApi.create(courseData);
+    setCourses((prev) => [...prev, created]);
   };
 
-  const deleteCourse = (id: number) => {
+  const updateCourse = async (id: number, data: Partial<Course>) => {
+    const updated = await courseApi.update(id, data);
+    setCourses((prev) => prev.map((c) => (c.id === id ? updated : c)));
+  };
+
+  const deleteCourse = async (id: number) => {
+    await courseApi.delete(id);
     setCourses((prev) => prev.filter((c) => c.id !== id));
     setEnrollments((prev) => prev.filter((e) => e.course_id !== id));
   };
 
-  const addEnrollment = (userId: number, courseId: number) => {
-    const alreadyEnrolled = enrollments.some(
-      (e) => e.user_id === userId && e.course_id === courseId
-    );
-    if (alreadyEnrolled) return;
-
-    const newEnrollment: Enrollment = {
-      id: Math.max(0, ...enrollments.map((e) => e.id)) + 1,
-      user_id: userId,
-      course_id: courseId,
-      enrolled_at: new Date().toISOString(),
-    };
-    setEnrollments((prev) => [...prev, newEnrollment]);
+  const addEnrollment = async (userId: number, courseId: number) => {
+    const created = await enrollmentApi.create(userId, courseId);
+    const course = courses.find((c) => c.id === courseId);
+    setEnrollments((prev) => [...prev, { ...created, course }]);
   };
 
-  const cancelEnrollment = (enrollmentId: number) => {
+  const cancelEnrollment = async (enrollmentId: number) => {
+    await enrollmentApi.cancel(enrollmentId);
     setEnrollments((prev) => prev.filter((e) => e.id !== enrollmentId));
   };
 
-  const addUser = (name: string, email: string, role = 'student'): User => {
-    const newUser: User = {
-      id: Math.max(0, ...users.map((u) => u.id)) + 1,
-      name,
-      email,
-      role,
-      created_at: new Date().toISOString(),
-    };
-    setUsers((prev) => [...prev, newUser]);
-    return newUser;
+  const addUser = async (name: string, email: string, role = 'student'): Promise<User> => {
+    return userApi.create({ name, email, role });
   };
 
   return (
     <AppContext.Provider
       value={{
         courses,
-        users,
         enrollments,
         currentUser,
+        loading,
+        error,
         addCourse,
         updateCourse,
         deleteCourse,

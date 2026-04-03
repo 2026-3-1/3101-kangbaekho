@@ -76,18 +76,22 @@ export default function CourseFormPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
-    if (isEdit && id) {
-      updateCourse(Number(id), form);
-      alert('강의가 수정되었습니다.');
-      navigate(`/courses/${id}`);
-    } else {
-      addCourse(form);
-      alert('강의가 등록되었습니다.');
-      navigate('/');
+    try {
+      if (isEdit && id) {
+        await updateCourse(Number(id), form);
+        alert('강의가 수정되었습니다.');
+        navigate(`/courses/${id}`);
+      } else {
+        await addCourse(form);
+        alert('강의가 등록되었습니다.');
+        navigate('/');
+      }
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : '요청에 실패했습니다.');
     }
   };
 
