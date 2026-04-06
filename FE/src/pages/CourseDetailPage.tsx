@@ -21,30 +21,46 @@ export default function CourseDetailPage() {
     );
   }
 
-  const enrollment = enrollments.find(
-    (e) => e.user_id === currentUser.id && e.course_id === courseId
-  );
+  const enrollment = currentUser
+    ? enrollments.find((e) => e.user_id === currentUser.id && e.course_id === courseId)
+    : undefined;
   const isEnrolled = !!enrollment;
 
   const enrolledCount = enrollments.filter((e) => e.course_id === courseId).length;
 
-  const handleEnroll = () => {
-    addEnrollment(currentUser.id, courseId);
-    alert('수강 신청이 완료되었습니다!');
-  };
-
-  const handleCancel = () => {
-    if (!enrollment) return;
-    if (window.confirm('수강을 취소하시겠습니까?')) {
-      cancelEnrollment(enrollment.id);
-      alert('수강이 취소되었습니다.');
+  const handleEnroll = async () => {
+    if (!currentUser) {
+      alert('수강 신청을 위해 회원가입이 필요합니다.');
+      return;
+    }
+    try {
+      await addEnrollment(currentUser.id, courseId);
+      alert('수강 신청이 완료되었습니다!');
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : '수강 신청에 실패했습니다.');
     }
   };
 
-  const handleDelete = () => {
+  const handleCancel = async () => {
+    if (!enrollment) return;
+    if (window.confirm('수강을 취소하시겠습니까?')) {
+      try {
+        await cancelEnrollment(enrollment.id);
+        alert('수강이 취소되었습니다.');
+      } catch (err: unknown) {
+        alert(err instanceof Error ? err.message : '수강 취소에 실패했습니다.');
+      }
+    }
+  };
+
+  const handleDelete = async () => {
     if (window.confirm('강의를 삭제하시겠습니까? 모든 수강 정보도 삭제됩니다.')) {
-      deleteCourse(courseId);
-      navigate('/');
+      try {
+        await deleteCourse(courseId);
+        navigate('/');
+      } catch (err: unknown) {
+        alert(err instanceof Error ? err.message : '강의 삭제에 실패했습니다.');
+      }
     }
   };
 

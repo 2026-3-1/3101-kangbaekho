@@ -1,25 +1,44 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 
 export default function EnrollmentListPage() {
   const { enrollments, courses, currentUser, cancelEnrollment } = useApp();
+  const navigate = useNavigate();
 
-  const myEnrollments = enrollments.filter(
-    (e) => e.user_id === currentUser.id
-  );
+  if (!currentUser) {
+    return (
+      <div style={{ ...styles.page, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+          <div style={{ fontSize: '3rem', marginBottom: '16px' }}>👤</div>
+          <h2 style={{ color: '#1a1a2e', marginBottom: '12px' }}>로그인이 필요합니다</h2>
+          <p style={{ color: '#888', marginBottom: '24px' }}>수강 목록을 보려면 먼저 회원가입을 해주세요.</p>
+          <button
+            onClick={() => navigate('/users/register')}
+            style={{ padding: '12px 28px', backgroundColor: '#e94560', color: '#fff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '1rem' }}
+          >
+            회원가입 하러 가기
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-  const enrolledCourses = myEnrollments.map((e) => ({
+  const enrolledCourses = enrollments.map((e) => ({
     enrollment: e,
-    course: courses.find((c) => c.id === e.course_id),
+    course: e.course ?? courses.find((c) => c.id === e.course_id),
   }));
 
-  const handleCancel = (enrollmentId: number, courseTitle?: string) => {
+  const handleCancel = async (enrollmentId: number, courseTitle?: string) => {
     if (
       window.confirm(
         `${courseTitle ? `"${courseTitle}" ` : ''}수강을 취소하시겠습니까?`
       )
     ) {
-      cancelEnrollment(enrollmentId);
+      try {
+        await cancelEnrollment(enrollmentId);
+      } catch (err: unknown) {
+        alert(err instanceof Error ? err.message : '수강 취소에 실패했습니다.');
+      }
     }
   };
 
@@ -36,7 +55,7 @@ export default function EnrollmentListPage() {
         <h1 style={styles.heading}>내 수강 목록</h1>
         <p style={styles.subheading}>
           현재 수강 중인 강의 목록입니다. 현재 사용자:{' '}
-          <strong>{currentUser.name}</strong> ({currentUser.email})
+          <strong>{currentUser!.name}</strong> ({currentUser!.email})
         </p>
       </div>
 
