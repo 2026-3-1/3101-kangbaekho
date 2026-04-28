@@ -9,6 +9,7 @@ import UserRegisterPage from './pages/UserRegisterPage';
 import LoginPage from './pages/LoginPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
+import CourseStudentsPage from './pages/CourseStudentsPage';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route path="/enrollments" element={<EnrollmentListPage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/courses/:id/students" element={<CourseStudentsPage />} />
         </Routes>
       </BrowserRouter>
     </AppProvider>

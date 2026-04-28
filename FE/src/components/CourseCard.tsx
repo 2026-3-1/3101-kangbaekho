@@ -8,6 +8,7 @@ interface CourseCardProps {
   canEdit?: boolean;
   canDelete?: boolean;
   canUseCart?: boolean;
+  canViewStudents?: boolean;
   onDelete?: (id: number) => void;
   onCartToggle?: (courseId: number) => void;
 }
@@ -19,6 +20,7 @@ export default function CourseCard({
   canEdit = false,
   canDelete = false,
   canUseCart = false,
+  canViewStudents = false,
   onDelete,
   onCartToggle,
 }: CourseCardProps) {
@@ -60,6 +62,11 @@ export default function CourseCard({
             >
               🛒
             </button>
+          )}
+          {canViewStudents && (
+            <Link to={`/courses/${course.id}/students`} style={styles.studentsBtn}>
+              👥 수강생
+            </Link>
           )}
           {canEdit && (
             <Link to={`/courses/${course.id}/edit`} style={styles.editBtn}>
@@ -191,6 +198,15 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: '6px',
     cursor: 'pointer',
     fontSize: '0.85rem',
+  },
+  studentsBtn: {
+    backgroundColor: '#f0f4ff',
+    color: '#0f3460',
+    padding: '6px 12px',
+    borderRadius: '6px',
+    textDecoration: 'none',
+    fontSize: '0.8rem',
+    fontWeight: 600,
   },
   editBtn: {
     backgroundColor: '#0f3460',

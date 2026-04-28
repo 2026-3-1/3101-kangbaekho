@@ -11,6 +11,9 @@ export class Course {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ nullable: true })
+  instructor_id: number;
+
   @Column()
   title: string;
 

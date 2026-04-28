@@ -227,6 +227,9 @@ export default function CourseDetailPage() {
                 {canManageCourse && (
                   <>
                     <hr style={styles.divider} />
+                    <Link to={`/courses/${course.id}/students`} style={styles.studentsBtn}>
+                      👥 수강생 목록 보기
+                    </Link>
                     <div style={styles.sideActions}>
                       <Link to={`/courses/${course.id}/edit`} style={styles.editBtn}>
                         강의 수정
@@ -457,6 +460,18 @@ const styles: Record<string, React.CSSProperties> = {
   enrolledNote: {
     textAlign: 'center',
     color: '#22c55e',
+    fontSize: '0.875rem',
+    fontWeight: 600,
+    marginBottom: '8px',
+  },
+  studentsBtn: {
+    display: 'block',
+    textAlign: 'center',
+    padding: '10px',
+    backgroundColor: '#f0f4ff',
+    color: '#0f3460',
+    borderRadius: '8px',
+    textDecoration: 'none',
     fontSize: '0.875rem',
     fontWeight: 600,
     marginBottom: '8px',

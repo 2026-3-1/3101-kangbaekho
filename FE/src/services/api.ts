@@ -87,3 +87,14 @@ export const paymentApi = {
     request<Payment>('/payments', { method: 'POST', body: JSON.stringify({ course_ids }) }),
   getHistory: () => request<Payment[]>('/payments'),
 };
+
+export interface CourseEnrollmentStudent {
+  enrollment_id: number;
+  enrolled_at: string;
+  student: { id: number; name: string; email: string } | null;
+}
+
+export const courseEnrollmentApi = {
+  getStudents: (courseId: number) =>
+    request<CourseEnrollmentStudent[]>(`/courses/${courseId}/enrollments`),
+};

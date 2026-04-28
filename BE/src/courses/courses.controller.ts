@@ -18,6 +18,7 @@ import { UpdateCourseDto } from './dto/update-course.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('courses')
 @Controller('courses')
@@ -55,8 +56,23 @@ export class CoursesController {
   @ApiResponse({ status: 201, description: '강의 생성 성공' })
   @ApiResponse({ status: 401, description: '인증 필요' })
   @ApiResponse({ status: 403, description: '권한 없음' })
-  create(@Body() createCourseDto: CreateCourseDto) {
-    return this.coursesService.create(createCourseDto);
+  create(
+    @Body() createCourseDto: CreateCourseDto,
+    @CurrentUser() user: { id: number },
+  ) {
+    return this.coursesService.create({ ...createCourseDto, instructor_id: user.id });
+  }
+
+  @Get(':id/enrollments')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('instructor', 'admin')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '강의 수강생 목록 (해당 강사/관리자 전용)' })
+  getCourseEnrollments(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: { id: number; role: string },
+  ) {
+    return this.coursesService.getCourseEnrollments(id, user.id, user.role);
   }
 
   @Patch(':id')

@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Course } from './course.entity';
+import { User } from './user.entity';
 
 @Entity('enrollments')
 export class Enrollment {
@@ -22,6 +23,10 @@ export class Enrollment {
   @ManyToOne(() => Course, { eager: false })
   @JoinColumn({ name: 'course_id' })
   course: Course;
+
+  @ManyToOne(() => User, { eager: false })
+  @JoinColumn({ name: 'user_id' })
+  student: User;
 
   @CreateDateColumn()
   enrolled_at: Date;

@@ -117,6 +117,7 @@ export default function CourseListPage() {
                 canEdit={canManageCourse}
                 canDelete={canManageCourse}
                 canUseCart={canUseCart}
+                canViewStudents={canManageCourse}
                 onDelete={handleDelete}
                 onCartToggle={handleCartToggle}
               />
