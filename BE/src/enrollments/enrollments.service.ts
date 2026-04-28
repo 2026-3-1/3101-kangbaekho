@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -54,12 +55,15 @@ export class EnrollmentsService {
     });
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: number, requesterId: number, requesterRole: string): Promise<void> {
     const enrollment = await this.enrollmentRepository.findOne({
       where: { id },
     });
     if (!enrollment) {
       throw new NotFoundException(`Enrollment #${id} not found`);
+    }
+    if (requesterRole !== 'admin' && enrollment.user_id !== requesterId) {
+      throw new ForbiddenException('본인의 수강 신청만 취소할 수 있습니다.');
     }
     await this.enrollmentRepository.remove(enrollment);
   }

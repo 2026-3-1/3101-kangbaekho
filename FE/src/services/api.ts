@@ -1,10 +1,18 @@
-import { Course, User, Enrollment } from '../types';
+import { AuthResponse, CartItem, Course, Enrollment, Payment, User } from '../types';
 
 const BASE = '/api';
 
+function getToken(): string | null {
+  return localStorage.getItem('access_token');
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const token = getToken();
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
   const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     ...options,
   });
   if (res.status === 204) return undefined as T;
@@ -25,6 +33,13 @@ interface CoursesResponse {
   limit: number;
 }
 
+export const authApi = {
+  register: (data: { name: string; email: string; password: string; role?: string }) =>
+    request<AuthResponse>('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
+  login: (data: { email: string; password: string }) =>
+    request<AuthResponse>('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
+};
+
 export const courseApi = {
   getAll: (params?: { category?: string; page?: number; limit?: number }) => {
     const query = new URLSearchParams();
@@ -43,8 +58,7 @@ export const courseApi = {
 };
 
 export const userApi = {
-  create: (data: { name: string; email: string; role?: string }) =>
-    request<User>('/users', { method: 'POST', body: JSON.stringify(data) }),
+  getById: (id: number) => request<User>(`/users/${id}`),
   getEnrollments: (userId: number) =>
     request<Enrollment[]>(`/users/${userId}/enrollments`),
 };
@@ -57,4 +71,19 @@ export const enrollmentApi = {
     }),
   cancel: (id: number) =>
     request<void>(`/enrollments/${id}`, { method: 'DELETE' }),
+};
+
+export const cartApi = {
+  getCart: () => request<CartItem[]>('/cart'),
+  addItem: (course_id: number) =>
+    request<CartItem>('/cart', { method: 'POST', body: JSON.stringify({ course_id }) }),
+  removeItem: (itemId: number) =>
+    request<void>(`/cart/${itemId}`, { method: 'DELETE' }),
+  clearCart: () => request<void>('/cart', { method: 'DELETE' }),
+};
+
+export const paymentApi = {
+  checkout: (course_ids: number[]) =>
+    request<Payment>('/payments', { method: 'POST', body: JSON.stringify({ course_ids }) }),
+  getHistory: () => request<Payment[]>('/payments'),
 };

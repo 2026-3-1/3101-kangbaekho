@@ -5,7 +5,7 @@ import CourseCard from '../components/CourseCard';
 const ITEMS_PER_PAGE = 6;
 
 export default function CourseListPage() {
-  const { courses, enrollments, currentUser, deleteCourse } = useApp();
+  const { courses, enrollments, cartItems, currentUser, deleteCourse, addToCart, removeFromCart } = useApp();
   const [selectedCategory, setSelectedCategory] = useState<string>('전체');
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
@@ -30,11 +30,16 @@ export default function CourseListPage() {
     currentPage * ITEMS_PER_PAGE
   );
 
+  const canManageCourse = currentUser?.role === 'instructor' || currentUser?.role === 'admin';
+  const canUseCart = currentUser?.role === 'student' || currentUser?.role === 'admin';
+
   const enrolledIds = new Set(
-    enrollments
-      .filter((e) => e.user_id === currentUser.id)
-      .map((e) => e.course_id)
+    currentUser
+      ? enrollments.filter((e) => e.user_id === currentUser.id).map((e) => e.course_id)
+      : [],
   );
+
+  const cartCourseIds = new Set(cartItems.map((ci) => ci.course_id));
 
   const handleCategoryChange = (cat: string) => {
     setSelectedCategory(cat);
@@ -44,6 +49,19 @@ export default function CourseListPage() {
   const handleDelete = (id: number) => {
     if (window.confirm('강의를 삭제하시겠습니까?')) {
       deleteCourse(id);
+    }
+  };
+
+  const handleCartToggle = async (courseId: number) => {
+    try {
+      if (cartCourseIds.has(courseId)) {
+        const item = cartItems.find((ci) => ci.course_id === courseId);
+        if (item) await removeFromCart(item.id);
+      } else {
+        await addToCart(courseId);
+      }
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : '장바구니 처리에 실패했습니다.');
     }
   };
 
@@ -95,7 +113,12 @@ export default function CourseListPage() {
                 key={course.id}
                 course={course}
                 isEnrolled={enrolledIds.has(course.id)}
+                isInCart={cartCourseIds.has(course.id)}
+                canEdit={canManageCourse}
+                canDelete={canManageCourse}
+                canUseCart={canUseCart}
                 onDelete={handleDelete}
+                onCartToggle={handleCartToggle}
               />
             ))}
           </div>

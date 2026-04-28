@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext';
 export default function CourseDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { courses, enrollments, currentUser, addEnrollment, cancelEnrollment, deleteCourse } =
+  const { courses, enrollments, cartItems, currentUser, addEnrollment, cancelEnrollment, deleteCourse, addToCart, removeFromCart } =
     useApp();
 
   const courseId = Number(id);
@@ -21,10 +21,18 @@ export default function CourseDetailPage() {
     );
   }
 
+  const canManageCourse = currentUser?.role === 'instructor' || currentUser?.role === 'admin';
+  const canEnroll = currentUser?.role === 'student' || currentUser?.role === 'admin';
+
   const enrollment = currentUser
     ? enrollments.find((e) => e.user_id === currentUser.id && e.course_id === courseId)
     : undefined;
   const isEnrolled = !!enrollment;
+
+  const cartItem = currentUser
+    ? cartItems.find((ci) => ci.course_id === courseId)
+    : undefined;
+  const isInCart = !!cartItem;
 
   const enrolledCount = enrollments.filter((e) => e.course_id === courseId).length;
 
@@ -38,6 +46,22 @@ export default function CourseDetailPage() {
       alert('수강 신청이 완료되었습니다!');
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : '수강 신청에 실패했습니다.');
+    }
+  };
+
+  const handleCartToggle = async () => {
+    if (!currentUser) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+    try {
+      if (isInCart) {
+        await removeFromCart(cartItem!.id);
+      } else {
+        await addToCart(courseId);
+      }
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : '장바구니 처리에 실패했습니다.');
     }
   };
 
@@ -152,42 +176,67 @@ export default function CourseDetailPage() {
                   {enrolledCount}/{course.max_students}명 수강 중
                 </p>
 
-                {isEnrolled ? (
-                  <button onClick={handleCancel} style={styles.cancelBtn}>
-                    수강 취소
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleEnroll}
-                    disabled={enrolledCount >= course.max_students}
-                    style={{
-                      ...styles.enrollBtn,
-                      ...(enrolledCount >= course.max_students
-                        ? styles.enrollBtnDisabled
-                        : {}),
-                    }}
-                  >
-                    {enrolledCount >= course.max_students
-                      ? '수강 마감'
-                      : '수강 신청'}
+                {currentUser?.role === 'admin' && (
+                  isEnrolled ? (
+                    <button onClick={handleCancel} style={styles.cancelBtn}>
+                      수강 취소
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleEnroll}
+                      disabled={enrolledCount >= course.max_students}
+                      style={{
+                        ...styles.enrollBtn,
+                        ...(enrolledCount >= course.max_students ? styles.enrollBtnDisabled : {}),
+                      }}
+                    >
+                      {enrolledCount >= course.max_students ? '수강 마감' : '직접 수강 등록 (관리자)'}
+                    </button>
+                  )
+                )}
+
+                {currentUser?.role === 'student' && (
+                  isEnrolled ? (
+                    <button onClick={handleCancel} style={styles.cancelBtn}>
+                      수강 취소
+                    </button>
+                  ) : enrolledCount >= course.max_students ? (
+                    <button disabled style={{ ...styles.enrollBtn, ...styles.enrollBtnDisabled }}>
+                      수강 마감
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleCartToggle}
+                      style={isInCart ? styles.cartBtnActive : styles.cartBtn}
+                    >
+                      {isInCart ? '🛒 장바구니에서 제거' : '🛒 장바구니 담기'}
+                    </button>
+                  )
+                )}
+
+                {!currentUser && (
+                  <button onClick={() => { alert('로그인이 필요합니다.'); }} style={styles.enrollBtn}>
+                    수강 신청
                   </button>
                 )}
 
                 {isEnrolled && (
-                  <div style={styles.enrolledNote}>
-                    ✓ 수강 중인 강의입니다
-                  </div>
+                  <div style={styles.enrolledNote}>✓ 수강 중인 강의입니다</div>
                 )}
 
-                <hr style={styles.divider} />
-                <div style={styles.sideActions}>
-                  <Link to={`/courses/${course.id}/edit`} style={styles.editBtn}>
-                    강의 수정
-                  </Link>
-                  <button onClick={handleDelete} style={styles.deleteBtn}>
-                    강의 삭제
-                  </button>
-                </div>
+                {canManageCourse && (
+                  <>
+                    <hr style={styles.divider} />
+                    <div style={styles.sideActions}>
+                      <Link to={`/courses/${course.id}/edit`} style={styles.editBtn}>
+                        강의 수정
+                      </Link>
+                      <button onClick={handleDelete} style={styles.deleteBtn}>
+                        강의 삭제
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -378,6 +427,30 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: '10px',
     fontSize: '1rem',
     fontWeight: 700,
+    cursor: 'pointer',
+    marginBottom: '8px',
+  },
+  cartBtn: {
+    width: '100%',
+    padding: '12px',
+    backgroundColor: '#fff',
+    color: '#e94560',
+    border: '2px solid #e94560',
+    borderRadius: '10px',
+    fontSize: '0.95rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    marginBottom: '8px',
+  },
+  cartBtnActive: {
+    width: '100%',
+    padding: '12px',
+    backgroundColor: '#fff5f7',
+    color: '#e94560',
+    border: '2px solid #e94560',
+    borderRadius: '10px',
+    fontSize: '0.95rem',
+    fontWeight: 600,
     cursor: 'pointer',
     marginBottom: '8px',
   },
