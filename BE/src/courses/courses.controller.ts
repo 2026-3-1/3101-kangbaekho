@@ -87,8 +87,9 @@ export class CoursesController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateCourseDto: UpdateCourseDto,
+    @CurrentUser() user: { id: number; role: string },
   ) {
-    return this.coursesService.update(id, updateCourseDto);
+    return this.coursesService.update(id, updateCourseDto, user.id, user.role);
   }
 
   @Delete(':id')
@@ -101,7 +102,10 @@ export class CoursesController {
   @ApiResponse({ status: 401, description: '인증 필요' })
   @ApiResponse({ status: 403, description: '권한 없음' })
   @ApiResponse({ status: 404, description: '강의 없음' })
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.coursesService.remove(id);
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: { id: number; role: string },
+  ) {
+    return this.coursesService.remove(id, user.id, user.role);
   }
 }

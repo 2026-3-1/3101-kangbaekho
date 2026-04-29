@@ -15,6 +15,7 @@ export class CourseRepository extends Repository<Course> {
   ): Promise<[Partial<Course>[], number]> {
     const qb = this.createQueryBuilder('course').select([
       'course.id',
+      'course.instructor_id',
       'course.title',
       'course.instructor',
       'course.category',

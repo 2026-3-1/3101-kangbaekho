@@ -41,14 +41,20 @@ export class CoursesService {
     return this.courseRepository.save(course);
   }
 
-  async update(id: number, updateCourseDto: UpdateCourseDto): Promise<Course> {
+  async update(id: number, updateCourseDto: UpdateCourseDto, requesterId: number, requesterRole: string): Promise<Course> {
     const course = await this.findOne(id);
+    if (requesterRole !== 'admin' && course.instructor_id !== requesterId) {
+      throw new ForbiddenException('본인이 개설한 강의만 수정할 수 있습니다.');
+    }
     Object.assign(course, updateCourseDto);
     return this.courseRepository.save(course);
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: number, requesterId: number, requesterRole: string): Promise<void> {
     const course = await this.findOne(id);
+    if (requesterRole !== 'admin' && course.instructor_id !== requesterId) {
+      throw new ForbiddenException('본인이 개설한 강의만 삭제할 수 있습니다.');
+    }
     await this.courseRepository.remove(course);
   }
 

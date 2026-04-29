@@ -30,7 +30,9 @@ export default function CourseListPage() {
     currentPage * ITEMS_PER_PAGE
   );
 
-  const canManageCourse = currentUser?.role === 'instructor' || currentUser?.role === 'admin';
+  const canManageCourse = (courseInstructorId: number) =>
+    currentUser?.role === 'admin' ||
+    (currentUser?.role === 'instructor' && courseInstructorId === currentUser.id);
   const canUseCart = currentUser?.role === 'student' || currentUser?.role === 'admin';
 
   const enrolledIds = new Set(
@@ -114,10 +116,10 @@ export default function CourseListPage() {
                 course={course}
                 isEnrolled={enrolledIds.has(course.id)}
                 isInCart={cartCourseIds.has(course.id)}
-                canEdit={canManageCourse}
-                canDelete={canManageCourse}
+                canEdit={canManageCourse(course.instructor_id)}
+                canDelete={canManageCourse(course.instructor_id)}
                 canUseCart={canUseCart}
-                canViewStudents={canManageCourse}
+                canViewStudents={canManageCourse(course.instructor_id)}
                 onDelete={handleDelete}
                 onCartToggle={handleCartToggle}
               />

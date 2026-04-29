@@ -21,7 +21,9 @@ export default function CourseDetailPage() {
     );
   }
 
-  const canManageCourse = currentUser?.role === 'instructor' || currentUser?.role === 'admin';
+  const canManageCourse =
+    currentUser?.role === 'admin' ||
+    (currentUser?.role === 'instructor' && course.instructor_id === currentUser.id);
   const canEnroll = currentUser?.role === 'student' || currentUser?.role === 'admin';
 
   const enrollment = currentUser
