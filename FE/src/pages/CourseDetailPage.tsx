@@ -24,7 +24,6 @@ export default function CourseDetailPage() {
   const canManageCourse =
     currentUser?.role === 'admin' ||
     (currentUser?.role === 'instructor' && course.instructor_id === currentUser.id);
-  const canEnroll = currentUser?.role === 'student' || currentUser?.role === 'admin';
 
   const enrollment = currentUser
     ? enrollments.find((e) => e.user_id === currentUser.id && e.course_id === courseId)
