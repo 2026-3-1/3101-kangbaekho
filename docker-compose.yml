@@ -1,0 +1,67 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: ou-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-1234}
+      MYSQL_DATABASE: ${DB_DATABASE:-online_course}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${DB_PASSWORD:-1234}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - ou-net
+
+  backend:
+    build:
+      context: ./BE
+      dockerfile: Dockerfile
+    container_name: ou-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USERNAME: ${DB_USERNAME:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-1234}
+      DB_DATABASE: ${DB_DATABASE:-online_course}
+      DB_SYNCHRONIZE: ${DB_SYNCHRONIZE:-true}
+      JWT_SECRET: ${JWT_SECRET:-jwt_secret_key_p2_online_course_2024}
+    ports:
+      - "3000:3000"
+    networks:
+      - ou-net
+
+  frontend:
+    build:
+      context: ./FE
+      dockerfile: Dockerfile
+    container_name: ou-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    networks:
+      - ou-net
+
+networks:
+  ou-net:
+    driver: bridge
+
+volumes:
+  db_data:
