@@ -2,15 +2,15 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
   ManyToOne,
+  JoinColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Course } from './course.entity';
 import { User } from './user.entity';
+import { Course } from './course.entity';
 
-@Entity('enrollments')
-export class Enrollment {
+@Entity('cart_items')
+export class CartItem {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -20,14 +20,14 @@ export class Enrollment {
   @Column()
   course_id: number;
 
-  @ManyToOne(() => Course, { eager: false })
+  @ManyToOne(() => Course, { eager: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'course_id' })
   course: Course;
 
-  @ManyToOne(() => User, { eager: false })
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  student: User;
+  user: User;
 
   @CreateDateColumn()
-  enrolled_at: Date;
+  added_at: Date;
 }

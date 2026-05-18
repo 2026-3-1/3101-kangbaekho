@@ -11,12 +11,12 @@ export default function EnrollmentListPage() {
         <div style={{ textAlign: 'center', padding: '60px 20px' }}>
           <div style={{ fontSize: '3rem', marginBottom: '16px' }}>👤</div>
           <h2 style={{ color: '#1a1a2e', marginBottom: '12px' }}>로그인이 필요합니다</h2>
-          <p style={{ color: '#888', marginBottom: '24px' }}>수강 목록을 보려면 먼저 회원가입을 해주세요.</p>
+          <p style={{ color: '#888', marginBottom: '24px' }}>수강 목록을 보려면 먼저 로그인해주세요.</p>
           <button
-            onClick={() => navigate('/users/register')}
+            onClick={() => navigate('/login')}
             style={{ padding: '12px 28px', backgroundColor: '#e94560', color: '#fff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '1rem' }}
           >
-            회원가입 하러 가기
+            로그인 하러 가기
           </button>
         </div>
       </div>

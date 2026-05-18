@@ -6,6 +6,10 @@ import CourseDetailPage from './pages/CourseDetailPage';
 import CourseFormPage from './pages/CourseFormPage';
 import EnrollmentListPage from './pages/EnrollmentListPage';
 import UserRegisterPage from './pages/UserRegisterPage';
+import LoginPage from './pages/LoginPage';
+import CartPage from './pages/CartPage';
+import CheckoutPage from './pages/CheckoutPage';
+import CourseStudentsPage from './pages/CourseStudentsPage';
 
 function App() {
   return (
@@ -14,11 +18,15 @@ function App() {
         <Navbar />
         <Routes>
           <Route path="/" element={<CourseListPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/users/register" element={<UserRegisterPage />} />
           <Route path="/courses/new" element={<CourseFormPage />} />
           <Route path="/courses/:id" element={<CourseDetailPage />} />
           <Route path="/courses/:id/edit" element={<CourseFormPage />} />
           <Route path="/enrollments" element={<EnrollmentListPage />} />
-          <Route path="/users/register" element={<UserRegisterPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/courses/:id/students" element={<CourseStudentsPage />} />
         </Routes>
       </BrowserRouter>
     </AppProvider>

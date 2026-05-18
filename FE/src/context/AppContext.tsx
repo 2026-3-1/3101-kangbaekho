@@ -1,20 +1,27 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Course, User, Enrollment } from '../types';
-import { courseApi, userApi, enrollmentApi } from '../services/api';
+import { CartItem, Course, User, Enrollment, Payment } from '../types';
+import { authApi, cartApi, courseApi, userApi, enrollmentApi, paymentApi } from '../services/api';
 
 interface AppContextType {
   courses: Course[];
   enrollments: Enrollment[];
+  cartItems: CartItem[];
   currentUser: User | null;
+  token: string | null;
   loading: boolean;
   error: string | null;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => void;
+  register: (name: string, email: string, password: string, role?: string) => Promise<void>;
   addCourse: (course: Omit<Course, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
   updateCourse: (id: number, data: Partial<Course>) => Promise<void>;
   deleteCourse: (id: number) => Promise<void>;
   addEnrollment: (userId: number, courseId: number) => Promise<void>;
   cancelEnrollment: (enrollmentId: number) => Promise<void>;
-  addUser: (name: string, email: string, role?: string) => Promise<User>;
-  setCurrentUser: (user: User) => void;
+  addToCart: (courseId: number) => Promise<void>;
+  removeFromCart: (itemId: number) => Promise<void>;
+  clearCart: () => Promise<void>;
+  checkout: (courseIds: number[]) => Promise<Payment>;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -31,16 +38,12 @@ function loadStoredUser(): User | null {
 export function AppProvider({ children }: { children: ReactNode }) {
   const [courses, setCourses] = useState<Course[]>([]);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [currentUser, setCurrentUserState] = useState<User | null>(loadStoredUser);
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('access_token'));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const setCurrentUser = (user: User) => {
-    localStorage.setItem('currentUser', JSON.stringify(user));
-    setCurrentUserState(user);
-  };
-
-  // 강의 목록 로드
   useEffect(() => {
     courseApi
       .getAll()
@@ -49,17 +52,50 @@ export function AppProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false));
   }, []);
 
-  // 현재 사용자의 수강 목록 로드
   useEffect(() => {
-    if (!currentUser) {
+    if (!currentUser || !token) {
       setEnrollments([]);
+      setCartItems([]);
       return;
     }
     userApi
       .getEnrollments(currentUser.id)
       .then(setEnrollments)
       .catch(() => setEnrollments([]));
-  }, [currentUser]);
+
+    if (currentUser.role === 'student' || currentUser.role === 'admin') {
+      cartApi
+        .getCart()
+        .then(setCartItems)
+        .catch(() => setCartItems([]));
+    }
+  }, [currentUser, token]);
+
+  const saveAuth = (user: User, accessToken: string) => {
+    localStorage.setItem('currentUser', JSON.stringify(user));
+    localStorage.setItem('access_token', accessToken);
+    setCurrentUserState(user);
+    setToken(accessToken);
+  };
+
+  const login = async (email: string, password: string) => {
+    const res = await authApi.login({ email, password });
+    saveAuth(res.user, res.access_token);
+  };
+
+  const register = async (name: string, email: string, password: string, role = 'student') => {
+    const res = await authApi.register({ name, email, password, role });
+    saveAuth(res.user, res.access_token);
+  };
+
+  const logout = () => {
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('access_token');
+    setCurrentUserState(null);
+    setToken(null);
+    setEnrollments([]);
+    setCartItems([]);
+  };
 
   const addCourse = async (courseData: Omit<Course, 'id' | 'created_at' | 'updated_at'>) => {
     const created = await courseApi.create(courseData);
@@ -75,12 +111,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await courseApi.delete(id);
     setCourses((prev) => prev.filter((c) => c.id !== id));
     setEnrollments((prev) => prev.filter((e) => e.course_id !== id));
+    setCartItems((prev) => prev.filter((ci) => ci.course_id !== id));
   };
 
   const addEnrollment = async (userId: number, courseId: number) => {
     const created = await enrollmentApi.create(userId, courseId);
     const course = courses.find((c) => c.id === courseId);
     setEnrollments((prev) => [...prev, { ...created, course }]);
+    setCartItems((prev) => prev.filter((ci) => ci.course_id !== courseId));
   };
 
   const cancelEnrollment = async (enrollmentId: number) => {
@@ -88,8 +126,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setEnrollments((prev) => prev.filter((e) => e.id !== enrollmentId));
   };
 
-  const addUser = async (name: string, email: string, role = 'student'): Promise<User> => {
-    return userApi.create({ name, email, role });
+  const addToCart = async (courseId: number) => {
+    const item = await cartApi.addItem(courseId);
+    const course = courses.find((c) => c.id === courseId);
+    setCartItems((prev) => [...prev, { ...item, course: course! }]);
+  };
+
+  const removeFromCart = async (itemId: number) => {
+    await cartApi.removeItem(itemId);
+    setCartItems((prev) => prev.filter((ci) => ci.id !== itemId));
+  };
+
+  const clearCart = async () => {
+    await cartApi.clearCart();
+    setCartItems([]);
+  };
+
+  const checkout = async (courseIds: number[]): Promise<Payment> => {
+    const payment = await paymentApi.checkout(courseIds);
+    setCartItems((prev) => prev.filter((ci) => !courseIds.includes(ci.course_id)));
+    const newEnrollments = courseIds.map((courseId) => ({
+      id: 0,
+      user_id: currentUser!.id,
+      course_id: courseId,
+      enrolled_at: new Date().toISOString(),
+      course: courses.find((c) => c.id === courseId),
+    }));
+    setEnrollments((prev) => [...prev, ...newEnrollments as any]);
+    return payment;
   };
 
   return (
@@ -97,16 +161,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
       value={{
         courses,
         enrollments,
+        cartItems,
         currentUser,
+        token,
         loading,
         error,
+        login,
+        logout,
+        register,
         addCourse,
         updateCourse,
         deleteCourse,
         addEnrollment,
         cancelEnrollment,
-        addUser,
-        setCurrentUser,
+        addToCart,
+        removeFromCart,
+        clearCart,
+        checkout,
       }}
     >
       {children}

@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git commit -m ':*)",
+      "Bash(command -v wkhtmltopdf chromium)",
+      "Bash(ls /usr/bin/chrom* /usr/bin/google*)",
+      "Bash(google-chrome-stable --headless --disable-gpu --print-to-pdf=/home/baekho/dev/ou/작업일지_0403.pdf --print-to-pdf-no-header \"file:///home/baekho/dev/ou/작업일지_0403.html\")"
+    ]
+  }
+}

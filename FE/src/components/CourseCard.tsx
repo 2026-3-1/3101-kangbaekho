@@ -4,13 +4,25 @@ import { Course } from '../types';
 interface CourseCardProps {
   course: Course;
   isEnrolled?: boolean;
+  isInCart?: boolean;
+  canEdit?: boolean;
+  canDelete?: boolean;
+  canUseCart?: boolean;
+  canViewStudents?: boolean;
   onDelete?: (id: number) => void;
+  onCartToggle?: (courseId: number) => void;
 }
 
 export default function CourseCard({
   course,
   isEnrolled = false,
+  isInCart = false,
+  canEdit = false,
+  canDelete = false,
+  canUseCart = false,
+  canViewStudents = false,
   onDelete,
+  onCartToggle,
 }: CourseCardProps) {
   return (
     <div style={styles.card}>
@@ -42,10 +54,26 @@ export default function CourseCard({
           <Link to={`/courses/${course.id}`} style={styles.detailBtn}>
             상세보기
           </Link>
-          <Link to={`/courses/${course.id}/edit`} style={styles.editBtn}>
-            수정
-          </Link>
-          {onDelete && (
+          {canUseCart && !isEnrolled && onCartToggle && (
+            <button
+              onClick={() => onCartToggle(course.id)}
+              style={isInCart ? styles.cartBtnActive : styles.cartBtn}
+              title={isInCart ? '장바구니에서 제거' : '장바구니 담기'}
+            >
+              🛒
+            </button>
+          )}
+          {canViewStudents && (
+            <Link to={`/courses/${course.id}/students`} style={styles.studentsBtn}>
+              👥 수강생
+            </Link>
+          )}
+          {canEdit && (
+            <Link to={`/courses/${course.id}/edit`} style={styles.editBtn}>
+              수정
+            </Link>
+          )}
+          {canDelete && onDelete && (
             <button
               onClick={() => onDelete(course.id)}
               style={styles.deleteBtn}
@@ -151,6 +179,33 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: '6px',
     textDecoration: 'none',
     fontSize: '0.82rem',
+    fontWeight: 600,
+  },
+  cartBtn: {
+    backgroundColor: '#fff',
+    color: '#e94560',
+    border: '1.5px solid #e94560',
+    padding: '5px 10px',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontSize: '0.85rem',
+  },
+  cartBtnActive: {
+    backgroundColor: '#fff5f7',
+    color: '#e94560',
+    border: '1.5px solid #e94560',
+    padding: '5px 10px',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontSize: '0.85rem',
+  },
+  studentsBtn: {
+    backgroundColor: '#f0f4ff',
+    color: '#0f3460',
+    padding: '6px 12px',
+    borderRadius: '6px',
+    textDecoration: 'none',
+    fontSize: '0.8rem',
     fontWeight: 600,
   },
   editBtn: {
