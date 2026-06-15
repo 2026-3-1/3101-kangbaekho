@@ -73,19 +73,55 @@ export default function CourseStudentsPage() {
                   <th style={styles.th}>이름</th>
                   <th style={styles.th}>이메일</th>
                   <th style={styles.th}>수강 등록일</th>
+                  <th style={styles.th}>진도율</th>
+                  <th style={styles.th}>상태</th>
                 </tr>
               </thead>
               <tbody>
-                {students.map((item, index) => (
-                  <tr key={item.enrollment_id} style={styles.tr}>
-                    <td style={styles.td}>{index + 1}</td>
-                    <td style={{ ...styles.td, fontWeight: 600 }}>
-                      {item.student?.name ?? '-'}
-                    </td>
-                    <td style={styles.td}>{item.student?.email ?? '-'}</td>
-                    <td style={styles.td}>{formatDate(item.enrolled_at)}</td>
-                  </tr>
-                ))}
+                {students.map((item, index) => {
+                  const percent = item.progress_percent ?? 0;
+                  return (
+                    <tr
+                      key={item.enrollment_id}
+                      style={styles.tr}
+                      data-testid={`student-row-${item.enrollment_id}`}
+                    >
+                      <td style={styles.td}>{index + 1}</td>
+                      <td style={{ ...styles.td, fontWeight: 600 }}>
+                        {item.student?.name ?? '-'}
+                      </td>
+                      <td style={styles.td}>{item.student?.email ?? '-'}</td>
+                      <td style={styles.td}>{formatDate(item.enrolled_at)}</td>
+                      <td style={styles.td}>
+                        <div style={styles.progressCell}>
+                          <div style={styles.progressBar}>
+                            <div
+                              style={{
+                                ...styles.progressFill,
+                                width: `${percent}%`,
+                              }}
+                            />
+                          </div>
+                          <span
+                            style={styles.progressNumber}
+                            data-testid={`student-progress-${item.enrollment_id}`}
+                          >
+                            {percent}%
+                          </span>
+                        </div>
+                      </td>
+                      <td style={styles.td}>
+                        {item.completed_at ? (
+                          <span style={styles.completedTag}>✓ 완료</span>
+                        ) : percent > 0 ? (
+                          <span style={styles.inProgressTag}>수강 중</span>
+                        ) : (
+                          <span style={styles.notStartedTag}>미시작</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -191,5 +227,54 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '14px 20px',
     fontSize: '0.92rem',
     color: '#333',
+  },
+  progressCell: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    minWidth: '160px',
+  },
+  progressBar: {
+    flex: 1,
+    height: '6px',
+    backgroundColor: '#eee',
+    borderRadius: '3px',
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#22c55e',
+    transition: 'width 0.3s',
+  },
+  progressNumber: {
+    fontWeight: 700,
+    fontSize: '0.85rem',
+    color: '#1a1a2e',
+    minWidth: '40px',
+    textAlign: 'right',
+  },
+  completedTag: {
+    backgroundColor: '#dcfce7',
+    color: '#15803d',
+    padding: '4px 10px',
+    borderRadius: '999px',
+    fontSize: '0.78rem',
+    fontWeight: 700,
+  },
+  inProgressTag: {
+    backgroundColor: '#dbeafe',
+    color: '#1d4ed8',
+    padding: '4px 10px',
+    borderRadius: '999px',
+    fontSize: '0.78rem',
+    fontWeight: 700,
+  },
+  notStartedTag: {
+    backgroundColor: '#f3f4f6',
+    color: '#6b7280',
+    padding: '4px 10px',
+    borderRadius: '999px',
+    fontSize: '0.78rem',
+    fontWeight: 700,
   },
 };

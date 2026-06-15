@@ -31,6 +31,11 @@ export class CreateCourseDto {
   @IsOptional()
   thumbnail_url?: string;
 
+  @ApiPropertyOptional({ description: '강의 영상 YouTube URL' })
+  @IsString()
+  @IsOptional()
+  youtube_url?: string;
+
   @ApiProperty({ description: '최대 수강 인원' })
   @IsNumber()
   max_students: number;

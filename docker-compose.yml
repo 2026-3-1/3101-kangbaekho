@@ -41,6 +41,7 @@ services:
       DB_DATABASE: ${DB_DATABASE:-online_course}
       DB_SYNCHRONIZE: ${DB_SYNCHRONIZE:-true}
       JWT_SECRET: ${JWT_SECRET:-jwt_secret_key_p2_online_course_2024}
+      TOSS_SECRET_KEY: ${TOSS_SECRET_KEY:-test_sk_zXLkKEypNArWmo50nX3lmeaxYG5R}
     ports:
       - "3000:3000"
     networks:

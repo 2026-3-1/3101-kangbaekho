@@ -101,11 +101,38 @@ export default function EnrollmentListPage() {
                       <h3 style={styles.courseTitle}>{course.title}</h3>
                       <p style={styles.instructor}>강사: {course.instructor}</p>
                       <p style={styles.description}>{course.description}</p>
+                      <div
+                        style={styles.progressWrapper}
+                        data-testid={`enrollment-progress-${enrollment.id}`}
+                      >
+                        <div style={styles.progressLabel}>
+                          <span>진도율</span>
+                          <span style={styles.progressValue}>
+                            {enrollment.progress_percent ?? 0}%
+                            {enrollment.completed_at ? ' · ✓ 완료' : ''}
+                          </span>
+                        </div>
+                        <div style={styles.progressBar}>
+                          <div
+                            style={{
+                              ...styles.progressFill,
+                              width: `${enrollment.progress_percent ?? 0}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
                       <div style={styles.cardFooter}>
                         <span style={styles.price}>
                           {course.price.toLocaleString()}원
                         </span>
                         <div style={styles.actions}>
+                          <Link
+                            to={`/courses/${course.id}/watch`}
+                            style={styles.watchBtn}
+                            data-testid={`watch-link-${enrollment.id}`}
+                          >
+                            ▶ 강의 수강
+                          </Link>
                           <Link
                             to={`/courses/${course.id}`}
                             style={styles.detailBtn}
@@ -256,6 +283,44 @@ const styles: Record<string, React.CSSProperties> = {
     textDecoration: 'none',
     fontSize: '0.85rem',
     fontWeight: 600,
+  },
+  watchBtn: {
+    padding: '7px 16px',
+    backgroundColor: '#22c55e',
+    color: '#fff',
+    borderRadius: '8px',
+    textDecoration: 'none',
+    fontSize: '0.85rem',
+    fontWeight: 600,
+  },
+  progressWrapper: {
+    marginTop: '8px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+  },
+  progressLabel: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontSize: '0.78rem',
+    color: '#666',
+    fontWeight: 600,
+  },
+  progressValue: {
+    color: '#22c55e',
+    fontWeight: 700,
+  },
+  progressBar: {
+    width: '100%',
+    height: '6px',
+    backgroundColor: '#eee',
+    borderRadius: '3px',
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#22c55e',
+    transition: 'width 0.3s',
   },
   cancelBtn: {
     padding: '7px 16px',

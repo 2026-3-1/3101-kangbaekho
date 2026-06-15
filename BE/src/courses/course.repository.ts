@@ -21,6 +21,7 @@ export class CourseRepository extends Repository<Course> {
       'course.category',
       'course.price',
       'course.thumbnail_url',
+      'course.youtube_url',
       'course.created_at',
     ]);
 

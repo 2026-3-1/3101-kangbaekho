@@ -71,6 +71,15 @@ export const enrollmentApi = {
     }),
   cancel: (id: number) =>
     request<void>(`/enrollments/${id}`, { method: 'DELETE' }),
+  getOne: (id: number) => request<Enrollment>(`/enrollments/${id}`),
+  updateProgress: (
+    id: number,
+    data: { progress_percent?: number; last_position_seconds?: number },
+  ) =>
+    request<Enrollment>(`/enrollments/${id}/progress`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
 };
 
 export const cartApi = {
@@ -82,15 +91,34 @@ export const cartApi = {
   clearCart: () => request<void>('/cart', { method: 'DELETE' }),
 };
 
+export interface TossPrepareResponse {
+  orderId: string;
+  amount: number;
+  orderName: string;
+}
+
 export const paymentApi = {
   checkout: (course_ids: number[]) =>
     request<Payment>('/payments', { method: 'POST', body: JSON.stringify({ course_ids }) }),
   getHistory: () => request<Payment[]>('/payments'),
+  tossPrepare: (course_ids: number[]) =>
+    request<TossPrepareResponse>('/payments/toss/prepare', {
+      method: 'POST',
+      body: JSON.stringify({ course_ids }),
+    }),
+  tossConfirm: (paymentKey: string, orderId: string, amount: number) =>
+    request<Payment>('/payments/toss/confirm', {
+      method: 'POST',
+      body: JSON.stringify({ paymentKey, orderId, amount }),
+    }),
 };
 
 export interface CourseEnrollmentStudent {
   enrollment_id: number;
   enrolled_at: string;
+  progress_percent: number;
+  last_position_seconds: number;
+  completed_at: string | null;
   student: { id: number; name: string; email: string } | null;
 }
 

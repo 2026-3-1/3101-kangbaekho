@@ -23,6 +23,7 @@ const emptyForm: FormData = {
   category: CATEGORIES[0],
   price: 0,
   thumbnail_url: '',
+  youtube_url: '',
   max_students: 30,
 };
 
@@ -44,6 +45,7 @@ export default function CourseFormPage() {
           category: existingCourse.category,
           price: existingCourse.price,
           thumbnail_url: existingCourse.thumbnail_url,
+          youtube_url: existingCourse.youtube_url ?? '',
           max_students: existingCourse.max_students,
         }
       : emptyForm
@@ -62,10 +64,15 @@ export default function CourseFormPage() {
         category: existingCourse.category,
         price: existingCourse.price,
         thumbnail_url: existingCourse.thumbnail_url,
+        youtube_url: existingCourse.youtube_url ?? '',
         max_students: existingCourse.max_students,
       });
+      setErrors({});
+    } else if (!isEdit) {
+      setForm(emptyForm);
+      setErrors({});
     }
-  }, [id]);
+  }, [id, isEdit]);
 
   const validate = (): boolean => {
     const newErrors: Partial<Record<keyof FormData, string>> = {};
@@ -226,6 +233,20 @@ export default function CourseFormPage() {
                 }}
               />
             )}
+          </div>
+
+          <div style={styles.field}>
+            <label style={styles.label}>강의 영상 YouTube URL</label>
+            <input
+              type="text"
+              value={form.youtube_url ?? ''}
+              onChange={(e) => handleChange('youtube_url', e.target.value)}
+              placeholder="https://www.youtube.com/watch?v=..."
+              style={styles.input}
+            />
+            <span style={{ fontSize: '0.78rem', color: '#888' }}>
+              학생이 수강 시 재생할 YouTube 동영상 링크를 입력하세요. (선택)
+            </span>
           </div>
 
           <div style={styles.field}>

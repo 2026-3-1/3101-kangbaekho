@@ -25,6 +25,10 @@ export class UpdateCourseDto {
   @IsOptional()
   thumbnail_url?: string;
 
+  @IsString()
+  @IsOptional()
+  youtube_url?: string;
+
   @IsNumber()
   @IsOptional()
   max_students?: number;

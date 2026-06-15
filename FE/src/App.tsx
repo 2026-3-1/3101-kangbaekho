@@ -10,6 +10,9 @@ import LoginPage from './pages/LoginPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import CourseStudentsPage from './pages/CourseStudentsPage';
+import CourseWatchPage from './pages/CourseWatchPage';
+import PaymentSuccessPage from './pages/PaymentSuccessPage';
+import PaymentFailPage from './pages/PaymentFailPage';
 
 function App() {
   return (
@@ -27,6 +30,9 @@ function App() {
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/courses/:id/students" element={<CourseStudentsPage />} />
+          <Route path="/courses/:id/watch" element={<CourseWatchPage />} />
+          <Route path="/payments/success" element={<PaymentSuccessPage />} />
+          <Route path="/payments/fail" element={<PaymentFailPage />} />
         </Routes>
       </BrowserRouter>
     </AppProvider>
