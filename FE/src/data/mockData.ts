@@ -124,11 +124,17 @@ export const initialEnrollments: Enrollment[] = [
     user_id: 1,
     course_id: 1,
     enrolled_at: '2025-01-20T10:00:00Z',
+    progress_percent: 0,
+    last_position_seconds: 0,
+    completed_at: null,
   },
   {
     id: 2,
     user_id: 1,
     course_id: 3,
     enrolled_at: '2025-02-05T11:00:00Z',
+    progress_percent: 0,
+    last_position_seconds: 0,
+    completed_at: null,
   },
 ];

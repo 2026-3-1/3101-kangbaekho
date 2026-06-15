@@ -28,6 +28,15 @@ export class Enrollment {
   @JoinColumn({ name: 'user_id' })
   student: User;
 
+  @Column({ type: 'int', default: 0 })
+  progress_percent: number;
+
+  @Column({ type: 'int', default: 0 })
+  last_position_seconds: number;
+
+  @Column({ type: 'datetime', nullable: true })
+  completed_at: Date | null;
+
   @CreateDateColumn()
   enrolled_at: Date;
 }

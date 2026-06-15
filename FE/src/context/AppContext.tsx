@@ -5,6 +5,7 @@ import { authApi, cartApi, courseApi, userApi, enrollmentApi, paymentApi } from 
 interface AppContextType {
   courses: Course[];
   enrollments: Enrollment[];
+  enrollmentsLoaded: boolean;
   cartItems: CartItem[];
   currentUser: User | null;
   token: string | null;
@@ -18,6 +19,9 @@ interface AppContextType {
   deleteCourse: (id: number) => Promise<void>;
   addEnrollment: (userId: number, courseId: number) => Promise<void>;
   cancelEnrollment: (enrollmentId: number) => Promise<void>;
+  refreshEnrollments: () => Promise<void>;
+  refreshCart: () => Promise<void>;
+  updateEnrollmentInContext: (enrollment: Enrollment) => void;
   addToCart: (courseId: number) => Promise<void>;
   removeFromCart: (itemId: number) => Promise<void>;
   clearCart: () => Promise<void>;
@@ -38,6 +42,7 @@ function loadStoredUser(): User | null {
 export function AppProvider({ children }: { children: ReactNode }) {
   const [courses, setCourses] = useState<Course[]>([]);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const [enrollmentsLoaded, setEnrollmentsLoaded] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [currentUser, setCurrentUserState] = useState<User | null>(loadStoredUser);
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('access_token'));
@@ -56,12 +61,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!currentUser || !token) {
       setEnrollments([]);
       setCartItems([]);
+      setEnrollmentsLoaded(true);
       return;
     }
+    setEnrollmentsLoaded(false);
     userApi
       .getEnrollments(currentUser.id)
-      .then(setEnrollments)
-      .catch(() => setEnrollments([]));
+      .then((res) => {
+        setEnrollments(res);
+      })
+      .catch(() => setEnrollments([]))
+      .finally(() => setEnrollmentsLoaded(true));
 
     if (currentUser.role === 'student' || currentUser.role === 'admin') {
       cartApi
@@ -70,6 +80,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .catch(() => setCartItems([]));
     }
   }, [currentUser, token]);
+
+  const refreshEnrollments = async () => {
+    if (!currentUser) return;
+    try {
+      const res = await userApi.getEnrollments(currentUser.id);
+      setEnrollments(res);
+    } catch {
+      // ignore
+    }
+  };
+
+  const refreshCart = async () => {
+    if (!currentUser) return;
+    try {
+      const res = await cartApi.getCart();
+      setCartItems(res);
+    } catch {
+      // ignore
+    }
+  };
+
+  const updateEnrollmentInContext = (enrollment: Enrollment) => {
+    setEnrollments((prev) =>
+      prev.map((e) => (e.id === enrollment.id ? { ...e, ...enrollment } : e)),
+    );
+  };
 
   const saveAuth = (user: User, accessToken: string) => {
     localStorage.setItem('currentUser', JSON.stringify(user));
@@ -145,14 +181,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const checkout = async (courseIds: number[]): Promise<Payment> => {
     const payment = await paymentApi.checkout(courseIds);
     setCartItems((prev) => prev.filter((ci) => !courseIds.includes(ci.course_id)));
-    const newEnrollments = courseIds.map((courseId) => ({
-      id: 0,
-      user_id: currentUser!.id,
-      course_id: courseId,
-      enrolled_at: new Date().toISOString(),
-      course: courses.find((c) => c.id === courseId),
-    }));
-    setEnrollments((prev) => [...prev, ...newEnrollments as any]);
+    await refreshEnrollments();
     return payment;
   };
 
@@ -161,6 +190,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       value={{
         courses,
         enrollments,
+        enrollmentsLoaded,
         cartItems,
         currentUser,
         token,
@@ -174,6 +204,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         deleteCourse,
         addEnrollment,
         cancelEnrollment,
+        refreshEnrollments,
+        refreshCart,
+        updateEnrollmentInContext,
         addToCart,
         removeFromCart,
         clearCart,

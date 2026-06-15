@@ -7,11 +7,12 @@ import { Course } from '../entities/course.entity';
 import { CartItem } from '../entities/cart-item.entity';
 import { PaymentService } from './payment.service';
 import { PaymentController } from './payment.controller';
+import { TossClient } from './toss.client';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Payment, PaymentItem, Enrollment, Course, CartItem])],
-  providers: [PaymentService],
+  providers: [PaymentService, TossClient],
   controllers: [PaymentController],
-  exports: [PaymentService],
+  exports: [PaymentService, TossClient],
 })
 export class PaymentModule {}

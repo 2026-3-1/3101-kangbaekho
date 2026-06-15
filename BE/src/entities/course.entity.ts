@@ -32,6 +32,9 @@ export class Course {
   @Column({ nullable: true })
   thumbnail_url: string;
 
+  @Column({ nullable: true })
+  youtube_url: string;
+
   @Column()
   max_students: number;
 

@@ -21,6 +21,15 @@ export class Payment {
   @Column({ default: 'completed' })
   status: string;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  order_id: string | null;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  payment_key: string | null;
+
+  @Column({ type: 'varchar', length: 64, nullable: true })
+  method: string | null;
+
   @OneToMany(() => PaymentItem, (item) => item.payment, { cascade: true, eager: true })
   items: PaymentItem[];
 

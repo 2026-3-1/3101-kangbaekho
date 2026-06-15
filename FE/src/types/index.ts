@@ -7,6 +7,7 @@ export interface Course {
   category: string;
   price: number;
   thumbnail_url: string;
+  youtube_url?: string;
   max_students: number;
   created_at: string;
   updated_at: string;
@@ -30,6 +31,9 @@ export interface Enrollment {
   user_id: number;
   course_id: number;
   enrolled_at: string;
+  progress_percent: number;
+  last_position_seconds: number;
+  completed_at: string | null;
   course?: Course;
 }
 

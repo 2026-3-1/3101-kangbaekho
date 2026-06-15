@@ -74,6 +74,9 @@ export class CoursesService {
     return enrollments.map((e) => ({
       enrollment_id: e.id,
       enrolled_at: e.enrolled_at,
+      progress_percent: e.progress_percent,
+      last_position_seconds: e.last_position_seconds,
+      completed_at: e.completed_at,
       student: e.student
         ? { id: e.student.id, name: e.student.name, email: e.student.email }
         : null,

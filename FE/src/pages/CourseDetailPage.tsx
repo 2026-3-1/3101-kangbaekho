@@ -222,7 +222,16 @@ export default function CourseDetailPage() {
                 )}
 
                 {isEnrolled && (
-                  <div style={styles.enrolledNote}>✓ 수강 중인 강의입니다</div>
+                  <>
+                    <Link
+                      to={`/courses/${course.id}/watch`}
+                      style={styles.watchBtn}
+                      data-testid="watch-course-link"
+                    >
+                      ▶ 강의 수강하기 ({enrollment?.progress_percent ?? 0}%)
+                    </Link>
+                    <div style={styles.enrolledNote}>✓ 수강 중인 강의입니다</div>
+                  </>
                 )}
 
                 {canManageCourse && (
@@ -464,6 +473,22 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '0.875rem',
     fontWeight: 600,
     marginBottom: '8px',
+  },
+  watchBtn: {
+    display: 'block',
+    width: '100%',
+    padding: '14px',
+    backgroundColor: '#22c55e',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '10px',
+    fontSize: '1rem',
+    fontWeight: 700,
+    cursor: 'pointer',
+    marginBottom: '8px',
+    textAlign: 'center',
+    textDecoration: 'none',
+    boxSizing: 'border-box',
   },
   studentsBtn: {
     display: 'block',
