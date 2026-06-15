@@ -1,24 +1,27 @@
 /// <reference types="vite/client" />
 
-interface TossPaymentsRequestPaymentOptions {
-  amount: number;
+interface TossPaymentsV2RequestPaymentOptions {
+  method: 'CARD' | 'TRANSFER' | 'VIRTUAL_ACCOUNT' | 'MOBILE_PHONE' | 'CULTURE_GIFT_CERTIFICATE' | 'FOREIGN_EASY_PAY';
+  amount: { currency: 'KRW'; value: number };
   orderId: string;
   orderName: string;
   customerName?: string;
   customerEmail?: string;
   successUrl: string;
   failUrl: string;
+  card?: Record<string, unknown>;
 }
 
-interface TossPaymentsInstance {
-  requestPayment(
-    method: string,
-    options: TossPaymentsRequestPaymentOptions,
-  ): Promise<void>;
+interface TossPaymentsV2Payment {
+  requestPayment(options: TossPaymentsV2RequestPaymentOptions): Promise<void>;
+}
+
+interface TossPaymentsV2Instance {
+  payment(options: { customerKey: string }): TossPaymentsV2Payment;
 }
 
 interface Window {
-  TossPayments?: (clientKey: string) => TossPaymentsInstance;
+  TossPayments?: (clientKey: string) => TossPaymentsV2Instance;
 }
 
 interface ImportMetaEnv {

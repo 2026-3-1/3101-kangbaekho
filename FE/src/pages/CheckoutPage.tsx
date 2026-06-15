@@ -54,8 +54,12 @@ export default function CheckoutPage() {
     try {
       const prep = await paymentApi.tossPrepare(courseIds);
       const tossPayments = window.TossPayments(TOSS_CLIENT_KEY);
-      await tossPayments.requestPayment("카드", {
-        amount: prep.amount,
+      const payment = tossPayments.payment({
+        customerKey: `user_${currentUser.id}`,
+      });
+      await payment.requestPayment({
+        method: "CARD",
+        amount: { currency: "KRW", value: prep.amount },
         orderId: prep.orderId,
         orderName: prep.orderName,
         customerName: currentUser.name,
