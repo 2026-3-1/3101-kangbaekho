@@ -14,7 +14,11 @@
       "Bash(git commit -m 'test: drop nest boilerplate app.e2e-spec.ts \\(CI 에서 실제 MySQL 붙으려다 죽음\\) *)",
       "Bash(git commit -m 'fix\\(cd\\): default SSH_USER 를 ec2-user 로 \\(Amazon Linux 기준\\) *)",
       "Bash(git rev-list *)",
-      "Bash(git remote *)"
+      "Bash(git remote *)",
+      "Bash(git commit -m 'fix\\(cd\\): 서버에 repo 없으면 자동 clone, .env 없으면 .env.example 복사 *)",
+      "Bash(awk 'NR>=70 && NR<=110' /home/baekho/dev/ou/.github/workflows/cd.yml)",
+      "Bash(awk 'NR>=85 && NR<=110' /home/baekho/dev/ou/.github/workflows/cd.yml)",
+      "Bash(git commit *)"
     ],
     "additionalDirectories": [
       "/home/baekho/.local"

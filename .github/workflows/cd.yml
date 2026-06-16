@@ -90,10 +90,21 @@ jobs:
               git reset --hard "origin/$BRANCH"
             fi
 
-            if [ ! -f .env ] && [ -f .env.example ]; then
-              echo "==> .env 없음 — .env.example 복사 (실제 값은 SSH 로 직접 수정 필요)"
-              cp .env.example .env
-            fi
+            echo "==> writing .env (배포마다 덮어씀)"
+            {
+              echo "DB_USERNAME=root"
+              echo "DB_PASSWORD=1234"
+              echo "DB_DATABASE=online_course"
+              echo "DB_SYNCHRONIZE=true"
+              echo "JWT_SECRET=jwt_secret_key_p2_online_course_2024"
+              echo "TOSS_SECRET_KEY=test_sk_zXLkKEypNArWmo50nX3lmeaxYG5R"
+              echo "SMTP_HOST="
+              echo "SMTP_PORT=587"
+              echo "SMTP_USER="
+              echo "SMTP_PASS="
+              echo "MAIL_FROM=no-reply@online-course.local"
+              echo "APP_VERSION=p3"
+            } > .env
 
             echo "==> docker compose up -d --build"
             docker compose up -d --build
