@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -11,6 +12,7 @@ import { User } from '../entities/user.entity';
 import { Course } from '../entities/course.entity';
 import { CreateEnrollmentDto } from './dto/create-enrollment.dto';
 import { UpdateProgressDto } from './dto/update-progress.dto';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class EnrollmentsService {
@@ -21,6 +23,7 @@ export class EnrollmentsService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Course)
     private readonly courseRepository: Repository<Course>,
+    private readonly audit: AuditService,
   ) {}
 
   async create(createEnrollmentDto: CreateEnrollmentDto): Promise<Enrollment> {
@@ -66,7 +69,20 @@ export class EnrollmentsService {
     if (requesterRole !== 'admin' && enrollment.user_id !== requesterId) {
       throw new ForbiddenException('본인의 수강 신청만 취소할 수 있습니다.');
     }
+    const snapshot = {
+      id: enrollment.id,
+      user_id: enrollment.user_id,
+      course_id: enrollment.course_id,
+    };
     await this.enrollmentRepository.remove(enrollment);
+    await this.audit.record({
+      actor_id: requesterId,
+      actor_role: requesterRole,
+      action: AuditService.actions.ENROLLMENT_CANCEL,
+      target_type: 'enrollment',
+      target_id: snapshot.id,
+      detail: { user_id: snapshot.user_id, course_id: snapshot.course_id },
+    });
   }
 
   async findOneForViewer(
@@ -100,6 +116,7 @@ export class EnrollmentsService {
   ): Promise<Enrollment> {
     const enrollment = await this.enrollmentRepository.findOne({
       where: { id },
+      relations: ['course'],
     });
     if (!enrollment) {
       throw new NotFoundException(`Enrollment #${id} not found`);
@@ -108,6 +125,14 @@ export class EnrollmentsService {
       throw new ForbiddenException('본인의 진도만 업데이트할 수 있습니다.');
     }
     if (dto.progress_percent !== undefined) {
+      if (
+        dto.progress_percent >= 100 &&
+        !enrollment.course?.youtube_url?.trim()
+      ) {
+        throw new BadRequestException(
+          '강의 영상이 등록되지 않은 강의는 완료 처리할 수 없습니다.',
+        );
+      }
       enrollment.progress_percent = dto.progress_percent;
       if (dto.progress_percent >= 100 && !enrollment.completed_at) {
         enrollment.completed_at = new Date();

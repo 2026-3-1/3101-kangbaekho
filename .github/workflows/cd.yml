@@ -1,0 +1,91 @@
+name: CD (SSH password + git pull)
+
+# 정책
+#  - 컨테이너 레지스트리(GHCR) 미사용
+#  - GitHub Secrets 에는 EC2 IP 와 SSH 비밀번호 두 개만 등록
+#  - 워크플로우가 sshpass 로 서버에 접속해 `git pull` 후 docker compose 재기동
+#
+# 필요한 GitHub Secrets:
+#   SSH_HOST       — EC2 퍼블릭 IP (예: 13.124.x.x)
+#   SSH_PASSWORD   — SSH 사용자 비밀번호
+#
+# 선택 Secrets (없으면 기본값 사용):
+#   SSH_USER       — SSH 사용자 (기본 ubuntu)
+#   SSH_PORT       — SSH 포트 (기본 22)
+#   DEPLOY_PATH    — 서버상 repo 경로 (기본 /home/ubuntu/ou)
+#   DEPLOY_BRANCH  — 배포할 브랜치 (기본 main)
+#
+# 서버 사전 준비:
+#   1) git clone <this repo> $DEPLOY_PATH
+#   2) cp .env.example .env  →  실제 시크릿 값으로 채움
+#      (DB_PASSWORD / JWT_SECRET / TOSS_SECRET_KEY / SMTP_* 등)
+#   3) docker + docker compose plugin 설치
+#   4) PasswordAuthentication yes (sshd_config)  → sshd 재시작
+#   5) deploy 사용자가 docker 그룹 멤버
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: SSH deploy (password)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
+
+      - name: Deploy via SSH (git pull + docker compose up)
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_BRANCH: ${{ secrets.DEPLOY_BRANCH }}
+        run: |
+          USER="${SSH_USER:-ubuntu}"
+          PORT="${SSH_PORT:-22}"
+          PATH_REMOTE="${DEPLOY_PATH:-/home/$USER/ou}"
+          BRANCH="${DEPLOY_BRANCH:-main}"
+
+          if [ -z "$SSHPASS" ] || [ -z "$SSH_HOST" ]; then
+            echo "::error::SSH_HOST / SSH_PASSWORD secrets 가 필요합니다."
+            exit 1
+          fi
+
+          sshpass -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+              -p "$PORT" "$USER@$SSH_HOST" bash -se <<EOSSH
+            set -euo pipefail
+            cd "$PATH_REMOTE"
+            echo "==> fetch & reset $BRANCH"
+            git fetch --all --prune
+            git checkout "$BRANCH"
+            git reset --hard "origin/$BRANCH"
+            echo "==> docker compose up -d --build"
+            docker compose up -d --build
+            echo "==> prune dangling images"
+            docker image prune -f
+            echo "==> health check"
+            for i in 1 2 3 4 5 6 7 8 9 10; do
+              if curl -fsS http://localhost:3000/healthz >/dev/null 2>&1; then
+                echo "healthz ok"
+                exit 0
+              fi
+              sleep 3
+            done
+            echo "healthz FAILED" >&2
+            docker compose logs --tail=200 backend
+            exit 1
+          EOSSH
+
+      - name: Notify on failure
+        if: failure()
+        run: echo "::warning::Deployment failed. SSH 로 ${{ secrets.SSH_HOST }} 접속해 docker compose logs 확인."

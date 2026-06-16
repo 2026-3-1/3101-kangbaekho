@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -10,6 +11,8 @@ import { Course } from './course.entity';
 import { User } from './user.entity';
 
 @Entity('enrollments')
+@Index('uq_enrollment_user_course', ['user_id', 'course_id'], { unique: true })
+@Index(['course_id', 'completed_at'])
 export class Enrollment {
   @PrimaryGeneratedColumn()
   id: number;

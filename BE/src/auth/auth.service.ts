@@ -10,6 +10,7 @@ import * as bcrypt from 'bcrypt';
 import { User } from '../entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class AuthService {
@@ -17,6 +18,7 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
+    private readonly audit: AuditService,
   ) {}
 
   async register(dto: RegisterDto): Promise<{ access_token: string; user: Omit<User, 'password'> }> {
@@ -33,6 +35,15 @@ export class AuthService {
       role: dto.role ?? 'student',
     });
     const saved = await this.userRepository.save(user);
+
+    await this.audit.record({
+      actor_id: saved.id,
+      actor_role: saved.role,
+      action: AuditService.actions.USER_REGISTER,
+      target_type: 'user',
+      target_id: saved.id,
+      detail: { email: saved.email, name: saved.name, role: saved.role },
+    });
 
     const token = this.jwtService.sign({ sub: saved.id, email: saved.email, role: saved.role });
     const { password: _, ...userWithoutPassword } = saved;

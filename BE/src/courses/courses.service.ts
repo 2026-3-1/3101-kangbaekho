@@ -6,6 +6,12 @@ import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { Course } from '../entities/course.entity';
 import { Enrollment } from '../entities/enrollment.entity';
+import { AuditService } from '../audit/audit.service';
+
+interface AuditActor {
+  id: number;
+  role: string;
+}
 
 @Injectable()
 export class CoursesService {
@@ -13,6 +19,7 @@ export class CoursesService {
     private readonly courseRepository: CourseRepository,
     @InjectRepository(Enrollment)
     private readonly enrollmentRepository: Repository<Enrollment>,
+    private readonly audit: AuditService,
   ) {}
 
   async findAll(
@@ -36,26 +43,68 @@ export class CoursesService {
     return course;
   }
 
-  async create(createCourseDto: CreateCourseDto & { instructor_id?: number }): Promise<Course> {
+  async create(
+    createCourseDto: CreateCourseDto & { instructor_id?: number },
+    actor?: AuditActor,
+  ): Promise<Course> {
     const course = this.courseRepository.create(createCourseDto);
-    return this.courseRepository.save(course);
+    const saved = await this.courseRepository.save(course);
+    if (actor) {
+      await this.audit.record({
+        actor_id: actor.id,
+        actor_role: actor.role,
+        action: AuditService.actions.COURSE_CREATE,
+        target_type: 'course',
+        target_id: saved.id,
+        detail: { title: saved.title, price: saved.price },
+      });
+    }
+    return saved;
   }
 
-  async update(id: number, updateCourseDto: UpdateCourseDto, requesterId: number, requesterRole: string): Promise<Course> {
+  async update(
+    id: number,
+    updateCourseDto: UpdateCourseDto,
+    requesterId: number,
+    requesterRole: string,
+  ): Promise<Course> {
     const course = await this.findOne(id);
     if (requesterRole !== 'admin' && course.instructor_id !== requesterId) {
       throw new ForbiddenException('본인이 개설한 강의만 수정할 수 있습니다.');
     }
+    const changedFields = Object.keys(updateCourseDto ?? {});
     Object.assign(course, updateCourseDto);
-    return this.courseRepository.save(course);
+    const saved = await this.courseRepository.save(course);
+    await this.audit.record({
+      actor_id: requesterId,
+      actor_role: requesterRole,
+      action: AuditService.actions.COURSE_UPDATE,
+      target_type: 'course',
+      target_id: saved.id,
+      detail: { fields: changedFields },
+    });
+    return saved;
   }
 
-  async remove(id: number, requesterId: number, requesterRole: string): Promise<void> {
+  async remove(
+    id: number,
+    requesterId: number,
+    requesterRole: string,
+  ): Promise<void> {
     const course = await this.findOne(id);
     if (requesterRole !== 'admin' && course.instructor_id !== requesterId) {
       throw new ForbiddenException('본인이 개설한 강의만 삭제할 수 있습니다.');
     }
+    const snapshot = { id: course.id, title: course.title };
     await this.courseRepository.remove(course);
+    await this.audit.record({
+      actor_id: requesterId,
+      actor_role: requesterRole,
+      action: AuditService.actions.COURSE_DELETE,
+      target_type: 'course',
+      target_id: snapshot.id,
+      detail: { title: snapshot.title },
+    });
   }
 
   async getCourseEnrollments(courseId: number, requesterId: number, requesterRole: string) {
