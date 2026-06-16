@@ -144,7 +144,7 @@ describe('P3 운영 E2E: retry / idempotency / receipt / jobs / health / metrics
     app.setGlobalPrefix('api');
     await app.init();
 
-    toss = app.get(TossClient) as unknown as FakeTossClient;
+    toss = app.get(TossClient);
     jobs = app.get(JobsService);
     notifications = app.get(NotificationsService);
   });
@@ -371,7 +371,7 @@ describe('P3 운영 E2E: retry / idempotency / receipt / jobs / health / metrics
   // ────────────────────── 스케줄러 ──────────────────────
   it('JobsService.expireStalePendingPayments 가 30분+ pending 을 expired 처리', async () => {
     // pending payment 직접 생성 (created_at 을 과거로)
-    const repo = app.get(getRepositoryToken(Payment)) as Repository<Payment>;
+    const repo = app.get(getRepositoryToken(Payment));
     const old = repo.create({
       user_id: studentId,
       total_amount: 1000,
@@ -427,8 +427,8 @@ describe('P3 운영 E2E: retry / idempotency / receipt / jobs / health / metrics
   // ────────────────────── 인덱스(unique) 보호 ──────────────────────
   it('Enrollment unique 인덱스가 중복 수강을 DB 레벨에서 차단', async () => {
     // FK 가 있으니 실존 user_id / course_id 를 써야 한다.
-    const courseRepo = app.get(getRepositoryToken(Course)) as Repository<Course>;
-    const enrollRepo = app.get(getRepositoryToken(Enrollment)) as Repository<Enrollment>;
+    const courseRepo = app.get(getRepositoryToken(Course));
+    const enrollRepo = app.get(getRepositoryToken(Enrollment));
     const newCourse = await courseRepo.save(
       courseRepo.create({
         title: 'unique-test',

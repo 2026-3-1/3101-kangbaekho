@@ -57,7 +57,9 @@ export class PaymentService {
       const titles = alreadyEnrolled
         .map((e) => courses.find((c) => c.id === e.course_id)?.title)
         .join(', ');
-      throw new ConflictException(`이미 수강 중인 강의가 포함되어 있습니다: ${titles}`);
+      throw new ConflictException(
+        `이미 수강 중인 강의가 포함되어 있습니다: ${titles}`,
+      );
     }
 
     const totalAmount = courses.reduce((sum, c) => sum + c.price, 0);
@@ -119,7 +121,9 @@ export class PaymentService {
       const titles = alreadyEnrolled
         .map((e) => courses.find((c) => c.id === e.course_id)?.title)
         .join(', ');
-      throw new ConflictException(`이미 수강 중인 강의가 포함되어 있습니다: ${titles}`);
+      throw new ConflictException(
+        `이미 수강 중인 강의가 포함되어 있습니다: ${titles}`,
+      );
     }
 
     const total = courses.reduce((sum, c) => sum + c.price, 0);
@@ -156,10 +160,8 @@ export class PaymentService {
     amount: number,
   ): Promise<Payment> {
     // 멱등성 — 같은 paymentKey 로 들어오면 첫 결과를 그대로 반환
-    return this.idempotency.runOnce(
-      'toss.confirm',
-      paymentKey,
-      async () => this.confirmInternal(userId, paymentKey, orderId, amount),
+    return this.idempotency.runOnce('toss.confirm', paymentKey, async () =>
+      this.confirmInternal(userId, paymentKey, orderId, amount),
     );
   }
 
@@ -186,7 +188,9 @@ export class PaymentService {
       throw new ConflictException('결제할 수 없는 주문 상태입니다.');
     }
     if (Number(amount) !== Number(pending.total_amount)) {
-      throw new BadRequestException('결제 금액이 주문 금액과 일치하지 않습니다.');
+      throw new BadRequestException(
+        '결제 금액이 주문 금액과 일치하지 않습니다.',
+      );
     }
 
     const courseIds = pending.items.map((i) => i.course_id);
@@ -197,7 +201,11 @@ export class PaymentService {
       throw new ConflictException('이미 수강 중인 강의가 포함되어 있습니다.');
     }
 
-    const tossResp = await this.tossClient.confirm({ paymentKey, orderId, amount });
+    const tossResp = await this.tossClient.confirm({
+      paymentKey,
+      orderId,
+      amount,
+    });
 
     pending.status = 'completed';
     pending.payment_key = paymentKey;
@@ -233,14 +241,19 @@ export class PaymentService {
     // 사용자에게 영수증 메일 발송 (실패해도 결제 자체는 성공시킨다)
     this.sendReceiptEmail(userId, finalPayment).catch((err) => {
       // 알림 실패는 critical 하지 않음 — 로그만
-      // eslint-disable-next-line no-console
-      console.warn(`[receipt-mail] failed userId=${userId}: ${(err as Error).message}`);
+
+      console.warn(
+        `[receipt-mail] failed userId=${userId}: ${(err as Error).message}`,
+      );
     });
 
     return finalPayment;
   }
 
-  private async sendReceiptEmail(userId: number, payment: Payment): Promise<void> {
+  private async sendReceiptEmail(
+    userId: number,
+    payment: Payment,
+  ): Promise<void> {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) return;
     const lines = payment.items
@@ -280,9 +293,13 @@ export class PaymentService {
       throw new ForbiddenException('본인의 영수증만 조회할 수 있습니다.');
     }
     if (payment.status !== 'completed') {
-      throw new BadRequestException('완료된 결제만 영수증을 발급할 수 있습니다.');
+      throw new BadRequestException(
+        '완료된 결제만 영수증을 발급할 수 있습니다.',
+      );
     }
-    const user = await this.userRepo.findOne({ where: { id: payment.user_id } });
+    const user = await this.userRepo.findOne({
+      where: { id: payment.user_id },
+    });
     return {
       receipt_no: `R-${String(payment.id).padStart(8, '0')}`,
       issued_at: new Date().toISOString(),

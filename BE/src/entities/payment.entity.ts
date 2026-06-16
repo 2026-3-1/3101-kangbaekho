@@ -36,7 +36,10 @@ export class Payment {
   @Column({ type: 'varchar', length: 64, nullable: true })
   method: string | null;
 
-  @OneToMany(() => PaymentItem, (item) => item.payment, { cascade: true, eager: true })
+  @OneToMany(() => PaymentItem, (item) => item.payment, {
+    cascade: true,
+    eager: true,
+  })
   items: PaymentItem[];
 
   @CreateDateColumn()

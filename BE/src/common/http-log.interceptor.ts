@@ -22,8 +22,7 @@ export class HttpLogInterceptor implements NestInterceptor {
     const res = http.getResponse<Response>();
     if (!req.requestId) {
       // 미들웨어 미적용 경로(혹은 Nest 11 path-to-regexp 변화) 대비 안전망
-      req.requestId =
-        (req.headers['x-request-id'] as string) || randomUUID();
+      req.requestId = (req.headers['x-request-id'] as string) || randomUUID();
       req.startedAt = req.startedAt ?? Date.now();
       res.setHeader('x-request-id', req.requestId);
     }

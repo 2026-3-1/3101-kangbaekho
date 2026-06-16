@@ -10,7 +10,12 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { EnrollmentsService } from './enrollments.service';
 import { CreateEnrollmentDto } from './dto/create-enrollment.dto';
 import { UpdateProgressDto } from './dto/update-progress.dto';
@@ -35,10 +40,15 @@ export class EnrollmentsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @ApiBearerAuth()
-  @ApiOperation({ summary: '수강 등록 (관리자 전용 — 학생은 POST /payments 사용)' })
+  @ApiOperation({
+    summary: '수강 등록 (관리자 전용 — 학생은 POST /payments 사용)',
+  })
   @ApiResponse({ status: 201, description: '수강 등록 성공' })
   @ApiResponse({ status: 401, description: '인증 필요' })
-  @ApiResponse({ status: 403, description: '권한 없음 (학생은 결제를 통해 수강 등록)' })
+  @ApiResponse({
+    status: 403,
+    description: '권한 없음 (학생은 결제를 통해 수강 등록)',
+  })
   @ApiResponse({ status: 404, description: '사용자 또는 강의를 찾을 수 없음' })
   @ApiResponse({ status: 409, description: '이미 수강 신청된 강의' })
   create(@Body() createEnrollmentDto: CreateEnrollmentDto) {
@@ -83,10 +93,7 @@ export class EnrollmentsController {
   @ApiResponse({ status: 401, description: '인증 필요' })
   @ApiResponse({ status: 403, description: '타인의 수강 신청은 취소 불가' })
   @ApiResponse({ status: 404, description: '수강 신청 내역 없음' })
-  remove(
-    @Param('id', ParseIntPipe) id: number,
-    @CurrentUser() user: AuthUser,
-  ) {
+  remove(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: AuthUser) {
     return this.enrollmentsService.remove(id, user.id, user.role);
   }
 }

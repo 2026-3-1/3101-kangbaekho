@@ -179,7 +179,9 @@ export class QnaService {
     if (!q) throw new NotFoundException('질문을 찾을 수 없습니다.');
     const course = await this.getCourseOr404(q.course_id);
     if (!this.canAnswer(course, viewer)) {
-      throw new ForbiddenException('해당 강의의 강사 또는 관리자만 답변할 수 있습니다.');
+      throw new ForbiddenException(
+        '해당 강의의 강사 또는 관리자만 답변할 수 있습니다.',
+      );
     }
     const a = this.answerRepo.create({
       question_id: questionId,

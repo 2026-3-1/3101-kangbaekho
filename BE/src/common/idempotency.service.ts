@@ -18,7 +18,11 @@ export class IdempotencyService {
    *  - 같은 key 재호출: 캐시된 결과 반환 (네트워크 재시도 안전)
    *  - 동시 다발 호출: unique 제약으로 conflict → 409 ConflictException
    */
-  async runOnce<T>(scope: string, key: string, fn: () => Promise<T>): Promise<T> {
+  async runOnce<T>(
+    scope: string,
+    key: string,
+    fn: () => Promise<T>,
+  ): Promise<T> {
     let row: IdempotencyKey | null = null;
     try {
       row = this.repo.create({ scope, key, status: 'pending' });

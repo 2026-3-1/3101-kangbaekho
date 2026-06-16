@@ -21,8 +21,12 @@ export class AuthService {
     private readonly audit: AuditService,
   ) {}
 
-  async register(dto: RegisterDto): Promise<{ access_token: string; user: Omit<User, 'password'> }> {
-    const existing = await this.userRepository.findOne({ where: { email: dto.email } });
+  async register(
+    dto: RegisterDto,
+  ): Promise<{ access_token: string; user: Omit<User, 'password'> }> {
+    const existing = await this.userRepository.findOne({
+      where: { email: dto.email },
+    });
     if (existing) {
       throw new ConflictException('이미 사용 중인 이메일입니다.');
     }
@@ -45,23 +49,39 @@ export class AuthService {
       detail: { email: saved.email, name: saved.name, role: saved.role },
     });
 
-    const token = this.jwtService.sign({ sub: saved.id, email: saved.email, role: saved.role });
+    const token = this.jwtService.sign({
+      sub: saved.id,
+      email: saved.email,
+      role: saved.role,
+    });
     const { password: _, ...userWithoutPassword } = saved;
     return { access_token: token, user: userWithoutPassword };
   }
 
-  async login(dto: LoginDto): Promise<{ access_token: string; user: Omit<User, 'password'> }> {
-    const user = await this.userRepository.findOne({ where: { email: dto.email } });
+  async login(
+    dto: LoginDto,
+  ): Promise<{ access_token: string; user: Omit<User, 'password'> }> {
+    const user = await this.userRepository.findOne({
+      where: { email: dto.email },
+    });
     if (!user) {
-      throw new UnauthorizedException('이메일 또는 비밀번호가 올바르지 않습니다.');
+      throw new UnauthorizedException(
+        '이메일 또는 비밀번호가 올바르지 않습니다.',
+      );
     }
 
     const isMatch = await bcrypt.compare(dto.password, user.password);
     if (!isMatch) {
-      throw new UnauthorizedException('이메일 또는 비밀번호가 올바르지 않습니다.');
+      throw new UnauthorizedException(
+        '이메일 또는 비밀번호가 올바르지 않습니다.',
+      );
     }
 
-    const token = this.jwtService.sign({ sub: user.id, email: user.email, role: user.role });
+    const token = this.jwtService.sign({
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    });
     const { password: _, ...userWithoutPassword } = user;
     return { access_token: token, user: userWithoutPassword };
   }

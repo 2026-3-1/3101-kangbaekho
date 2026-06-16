@@ -51,10 +51,7 @@ export class QnaController {
 
   @Get('questions/:id')
   @ApiOperation({ summary: '질문 상세 조회 (답변 포함)' })
-  detail(
-    @Param('id', ParseIntPipe) id: number,
-    @CurrentUser() user: AuthUser,
-  ) {
+  detail(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: AuthUser) {
     return this.qna.getQuestion(id, user);
   }
 

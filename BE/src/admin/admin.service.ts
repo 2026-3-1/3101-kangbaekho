@@ -76,7 +76,12 @@ export class AdminService {
     };
   }
 
-  async listUsers(query: { role?: string; q?: string; page?: number; limit?: number }) {
+  async listUsers(query: {
+    role?: string;
+    q?: string;
+    page?: number;
+    limit?: number;
+  }) {
     const page = Math.max(1, query.page ?? 1);
     const limit = Math.min(200, Math.max(1, query.limit ?? 50));
     const qb = this.userRepo
@@ -101,7 +106,9 @@ export class AdminService {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('사용자를 찾을 수 없습니다.');
     if (user.id === viewer.id && nextRole !== 'admin') {
-      throw new BadRequestException('본인의 admin 권한은 스스로 해제할 수 없습니다.');
+      throw new BadRequestException(
+        '본인의 admin 권한은 스스로 해제할 수 없습니다.',
+      );
     }
     const prev = user.role;
     if (prev === nextRole) {
@@ -120,7 +127,11 @@ export class AdminService {
     return { id: user.id, role: user.role };
   }
 
-  async listPayments(query: { status?: string; page?: number; limit?: number }) {
+  async listPayments(query: {
+    status?: string;
+    page?: number;
+    limit?: number;
+  }) {
     const page = Math.max(1, query.page ?? 1);
     const limit = Math.min(200, Math.max(1, query.limit ?? 50));
     const qb = this.paymentRepo

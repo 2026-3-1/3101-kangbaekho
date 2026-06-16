@@ -64,15 +64,21 @@ class MetricsRegistry {
     push('# TYPE http_requests_total counter');
     push(`http_requests_total ${this.requestCount}`);
 
-    push('# HELP http_request_errors_total Total error responses (4xx/5xx from interceptor)');
+    push(
+      '# HELP http_request_errors_total Total error responses (4xx/5xx from interceptor)',
+    );
     push('# TYPE http_request_errors_total counter');
     push(`http_request_errors_total ${this.errorCount}`);
 
-    push('# HELP http_request_duration_ms_sum Sum of HTTP request durations (ms)');
+    push(
+      '# HELP http_request_duration_ms_sum Sum of HTTP request durations (ms)',
+    );
     push('# TYPE http_request_duration_ms_sum counter');
     push(`http_request_duration_ms_sum ${this.requestDurationSumMs}`);
 
-    push('# HELP http_request_duration_ms_bucket Histogram of HTTP request durations (ms)');
+    push(
+      '# HELP http_request_duration_ms_bucket Histogram of HTTP request durations (ms)',
+    );
     push('# TYPE http_request_duration_ms_bucket histogram');
     for (const b of this.requestDurationBuckets) {
       const le = b.le === Infinity ? '+Inf' : String(b.le);

@@ -59,7 +59,11 @@ export class EnrollmentsService {
     });
   }
 
-  async remove(id: number, requesterId: number, requesterRole: string): Promise<void> {
+  async remove(
+    id: number,
+    requesterId: number,
+    requesterRole: string,
+  ): Promise<void> {
     const enrollment = await this.enrollmentRepository.findOne({
       where: { id },
     });

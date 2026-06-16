@@ -66,7 +66,9 @@ export class NotificationsService implements OnModuleInit {
     return this.sent.slice(-limit);
   }
 
-  async send(msg: MailMessage): Promise<{ accepted: boolean; messageId?: string }> {
+  async send(
+    msg: MailMessage,
+  ): Promise<{ accepted: boolean; messageId?: string }> {
     return withRetry(
       async (attempt) => {
         const info = await this.transporter.sendMail({
@@ -74,7 +76,9 @@ export class NotificationsService implements OnModuleInit {
           to: msg.to,
           subject: msg.subject,
           text: msg.text,
-          html: msg.html ?? (msg.text ? `<pre>${escapeHtml(msg.text)}</pre>` : undefined),
+          html:
+            msg.html ??
+            (msg.text ? `<pre>${escapeHtml(msg.text)}</pre>` : undefined),
         });
         this.sent.push({
           to: msg.to,

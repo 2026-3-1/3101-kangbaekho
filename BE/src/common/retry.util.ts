@@ -84,7 +84,12 @@ function describe(err: unknown): string {
  */
 export function isTransient(err: unknown): boolean {
   if (!err) return false;
-  const e = err as { status?: number; code?: string; name?: string; message?: string };
+  const e = err as {
+    status?: number;
+    code?: string;
+    name?: string;
+    message?: string;
+  };
   if (typeof e.status === 'number') {
     if (e.status >= 500 || e.status === 408 || e.status === 429) return true;
     if (e.status >= 400 && e.status < 500) return false;

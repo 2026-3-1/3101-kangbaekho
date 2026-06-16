@@ -32,7 +32,9 @@ export class TossClient {
 
     return withRetry(
       async (attempt) => {
-        this.logger.log(`toss confirm attempt=${attempt} orderId=${req.orderId}`);
+        this.logger.log(
+          `toss confirm attempt=${attempt} orderId=${req.orderId}`,
+        );
         const res = await fetch(
           'https://api.tosspayments.com/v1/payments/confirm',
           {
@@ -55,7 +57,9 @@ export class TossClient {
           const message =
             (typeof data.message === 'string' && data.message) ||
             `Toss 결제 승인 실패 (HTTP ${res.status})`;
-          this.logger.warn(`Toss confirm failed: status=${res.status} msg=${message}`);
+          this.logger.warn(
+            `Toss confirm failed: status=${res.status} msg=${message}`,
+          );
           // 5xx / 429 → retryable, 4xx → 즉시 BadRequest
           if (res.status >= 500 || res.status === 429 || res.status === 408) {
             const err = new Error(message) as Error & { status: number };
@@ -72,11 +76,16 @@ export class TossClient {
         initialDelayMs: 250,
         isRetryable: (err) => {
           const e = err as { status?: number; code?: string };
-          if (e.status && (e.status >= 500 || e.status === 429 || e.status === 408))
+          if (
+            e.status &&
+            (e.status >= 500 || e.status === 429 || e.status === 408)
+          )
             return true;
           if (
             e.code &&
-            ['ETIMEDOUT', 'ECONNRESET', 'ECONNREFUSED', 'EAI_AGAIN'].includes(e.code)
+            ['ETIMEDOUT', 'ECONNRESET', 'ECONNREFUSED', 'EAI_AGAIN'].includes(
+              e.code,
+            )
           )
             return true;
           return false;

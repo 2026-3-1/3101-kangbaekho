@@ -17,7 +17,8 @@ export class JobsService {
 
   constructor(
     @InjectRepository(JobRun) private readonly runRepo: Repository<JobRun>,
-    @InjectRepository(Payment) private readonly paymentRepo: Repository<Payment>,
+    @InjectRepository(Payment)
+    private readonly paymentRepo: Repository<Payment>,
     @InjectRepository(IdempotencyKey)
     private readonly idemRepo: Repository<IdempotencyKey>,
   ) {}
@@ -26,7 +27,10 @@ export class JobsService {
    * 작업 실행 래퍼 — 시작/종료/실패를 job_runs 테이블에 기록한다.
    * 실패해도 cron 전체를 중단시키지 않는다.
    */
-  async runTracked(name: string, fn: () => Promise<JobResult>): Promise<JobRun> {
+  async runTracked(
+    name: string,
+    fn: () => Promise<JobResult>,
+  ): Promise<JobRun> {
     const startedAt = new Date();
     const run = await this.runRepo.save(
       this.runRepo.create({
@@ -70,7 +74,10 @@ export class JobsService {
         p.status = 'expired';
         await this.paymentRepo.save(p);
       }
-      return { processed: stale.length, detail: { threshold: threshold.toISOString() } };
+      return {
+        processed: stale.length,
+        detail: { threshold: threshold.toISOString() },
+      };
     });
   }
 
@@ -88,8 +95,7 @@ export class JobsService {
         status: Not('running'),
       });
       return {
-        processed:
-          (idemRes.affected ?? 0) + (jobRes.affected ?? 0),
+        processed: (idemRes.affected ?? 0) + (jobRes.affected ?? 0),
         detail: {
           idempotency_purged: idemRes.affected ?? 0,
           job_runs_purged: jobRes.affected ?? 0,

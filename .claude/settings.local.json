@@ -7,7 +7,9 @@
       "Bash(curl -qL https://www.npmjs.com/install.sh)",
       "Bash(sh)",
       "Bash(export PATH=\"$HOME/.local/bin:$PATH\")",
-      "Bash(npm --version)"
+      "Bash(npm --version)",
+      "Bash(npx eslint *)",
+      "Bash(echo \"tsc rc=$?\")"
     ],
     "additionalDirectories": [
       "/home/baekho/.local"

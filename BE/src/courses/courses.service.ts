@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CourseRepository } from './course.repository';
@@ -26,7 +30,12 @@ export class CoursesService {
     category: string | undefined,
     page: number,
     limit: number,
-  ): Promise<{ data: Partial<Course>[]; total: number; page: number; limit: number }> {
+  ): Promise<{
+    data: Partial<Course>[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
     const [data, total] = await this.courseRepository.findWithPagination(
       category,
       page,
@@ -107,11 +116,17 @@ export class CoursesService {
     });
   }
 
-  async getCourseEnrollments(courseId: number, requesterId: number, requesterRole: string) {
+  async getCourseEnrollments(
+    courseId: number,
+    requesterId: number,
+    requesterRole: string,
+  ) {
     const course = await this.findOne(courseId);
 
     if (requesterRole !== 'admin' && course.instructor_id !== requesterId) {
-      throw new ForbiddenException('본인이 개설한 강의의 수강생만 조회할 수 있습니다.');
+      throw new ForbiddenException(
+        '본인이 개설한 강의의 수강생만 조회할 수 있습니다.',
+      );
     }
 
     const enrollments = await this.enrollmentRepository.find({
