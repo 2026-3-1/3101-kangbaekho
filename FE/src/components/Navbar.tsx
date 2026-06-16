@@ -47,6 +47,16 @@ export default function Navbar() {
               강의 등록
             </Link>
           )}
+
+          {currentUser?.role === 'admin' && (
+            <Link
+              to="/admin"
+              style={styles.adminLink}
+              data-testid="admin-console-link"
+            >
+              ⚙️ 관리자 콘솔
+            </Link>
+          )}
         </div>
 
         <div style={styles.userArea}>
@@ -104,4 +114,14 @@ const styles: Record<string, React.CSSProperties> = {
   userBadge: { color: '#aaa', fontSize: '0.85rem', backgroundColor: '#16213e', padding: '4px 12px', borderRadius: '20px', border: '1px solid #333' },
   logoutBtn: { backgroundColor: 'transparent', border: '1px solid #555', color: '#ccc', padding: '5px 12px', borderRadius: '6px', fontSize: '0.85rem', cursor: 'pointer' },
   registerBtn: { backgroundColor: '#e94560', color: '#fff', textDecoration: 'none', padding: '6px 14px', borderRadius: '6px', fontSize: '0.9rem', fontWeight: 600 },
+  adminLink: {
+    backgroundColor: '#0f172a',
+    color: '#fbbf24',
+    border: '1px solid #fbbf24',
+    padding: '6px 14px',
+    borderRadius: '6px',
+    fontSize: '0.85rem',
+    fontWeight: 700,
+    textDecoration: 'none',
+  },
 };

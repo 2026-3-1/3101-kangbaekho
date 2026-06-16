@@ -144,6 +144,14 @@ export default function CourseWatchPage() {
           )}
         </div>
 
+        <Link
+          to={`/courses/${courseId}/qna`}
+          style={styles.qnaLink}
+          data-testid="watch-qna-link"
+        >
+          💬 강의 Q&A로 이동
+        </Link>
+
         <div style={styles.progressCard}>
           <h3 style={styles.sectionTitle}>나의 진도율</h3>
           <div style={styles.progressBar}>
@@ -183,13 +191,23 @@ export default function CourseWatchPage() {
             </button>
             <button
               onClick={handleComplete}
-              disabled={saving}
-              style={styles.completeBtn}
+              disabled={saving || !ytId}
+              style={{
+                ...styles.completeBtn,
+                ...(!ytId ? styles.disabledBtn : {}),
+              }}
               data-testid="complete-btn"
+              title={ytId ? '' : '강의 영상이 등록되지 않은 강의는 완료 처리할 수 없습니다.'}
             >
               강의 완료 처리
             </button>
           </div>
+          {!ytId && (
+            <p style={styles.warn} data-testid="no-video-warn">
+              ※ 강의 영상이 등록되지 않아 완료 처리할 수 없습니다. 강사가 YouTube URL을
+              등록한 뒤에 다시 시도해주세요.
+            </p>
+          )}
           <p style={styles.hint}>
             영상을 시청한 후 진도율 슬라이더를 옮겨 "진도 저장"을 눌러주세요.
           </p>
@@ -299,6 +317,28 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
   },
   hint: { fontSize: '0.78rem', color: '#888', marginTop: '12px' },
+  warn: {
+    fontSize: '0.82rem',
+    color: '#b91c1c',
+    backgroundColor: '#fef2f2',
+    border: '1px solid #fecaca',
+    padding: '8px 12px',
+    borderRadius: '8px',
+    marginTop: '12px',
+  },
+  disabledBtn: { backgroundColor: '#9ca3af', cursor: 'not-allowed' },
+  qnaLink: {
+    display: 'inline-block',
+    backgroundColor: '#f0f9ff',
+    color: '#075985',
+    border: '1px solid #bae6fd',
+    padding: '10px 16px',
+    borderRadius: '8px',
+    textDecoration: 'none',
+    fontWeight: 600,
+    fontSize: '0.9rem',
+    marginBottom: '16px',
+  },
   center: { textAlign: 'center', padding: '80px 20px' },
   link: { color: '#e94560', textDecoration: 'none', fontWeight: 600 },
   primaryBtn: {

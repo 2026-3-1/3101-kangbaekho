@@ -1,5 +1,19 @@
-import { Body, Controller, Get, HttpCode, Post, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  ParseIntPipe,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { PaymentService } from './payment.service';
 import { TossPrepareDto } from './dto/toss-prepare.dto';
 import { TossConfirmDto } from './dto/toss-confirm.dto';
@@ -62,5 +76,17 @@ export class PaymentController {
   @ApiOperation({ summary: '결제 내역 조회' })
   getHistory(@CurrentUser() user: { id: number }) {
     return this.paymentService.getHistory(user.id);
+  }
+
+  @Get(':id/receipt')
+  @ApiOperation({ summary: '결제 영수증 조회 (본인 또는 관리자)' })
+  @ApiResponse({ status: 200, description: '영수증 데이터' })
+  @ApiResponse({ status: 403, description: '본인의 영수증만 조회 가능' })
+  @ApiResponse({ status: 404, description: '결제 내역 없음' })
+  getReceipt(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: { id: number; role: string },
+  ) {
+    return this.paymentService.getReceipt(id, user.id, user.role);
   }
 }

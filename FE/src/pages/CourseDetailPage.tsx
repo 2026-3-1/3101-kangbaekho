@@ -234,6 +234,16 @@ export default function CourseDetailPage() {
                   </>
                 )}
 
+                {(isEnrolled || canManageCourse) && (
+                  <Link
+                    to={`/courses/${course.id}/qna`}
+                    style={styles.qnaBtn}
+                    data-testid="qna-link"
+                  >
+                    💬 Q&A 게시판
+                  </Link>
+                )}
+
                 {canManageCourse && (
                   <>
                     <hr style={styles.divider} />
@@ -486,6 +496,22 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 700,
     cursor: 'pointer',
     marginBottom: '8px',
+    textAlign: 'center',
+    textDecoration: 'none',
+    boxSizing: 'border-box',
+  },
+  qnaBtn: {
+    display: 'block',
+    width: '100%',
+    padding: '10px',
+    backgroundColor: '#f0f9ff',
+    color: '#075985',
+    border: '1px solid #bae6fd',
+    borderRadius: '8px',
+    fontSize: '0.875rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    marginTop: '8px',
     textAlign: 'center',
     textDecoration: 'none',
     boxSizing: 'border-box',

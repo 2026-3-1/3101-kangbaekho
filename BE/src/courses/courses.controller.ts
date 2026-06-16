@@ -11,7 +11,13 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
@@ -58,9 +64,12 @@ export class CoursesController {
   @ApiResponse({ status: 403, description: '권한 없음' })
   create(
     @Body() createCourseDto: CreateCourseDto,
-    @CurrentUser() user: { id: number },
+    @CurrentUser() user: { id: number; role: string },
   ) {
-    return this.coursesService.create({ ...createCourseDto, instructor_id: user.id });
+    return this.coursesService.create(
+      { ...createCourseDto, instructor_id: user.id },
+      { id: user.id, role: user.role },
+    );
   }
 
   @Get(':id/enrollments')

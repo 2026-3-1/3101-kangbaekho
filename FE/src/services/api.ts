@@ -126,3 +126,144 @@ export const courseEnrollmentApi = {
   getStudents: (courseId: number) =>
     request<CourseEnrollmentStudent[]>(`/courses/${courseId}/enrollments`),
 };
+
+// ──────────────── Q&A ────────────────
+export interface QuestionAuthor {
+  id: number;
+  name: string;
+  role: string;
+}
+
+export interface QuestionListItem {
+  id: number;
+  title: string;
+  author: QuestionAuthor | null;
+  created_at: string;
+  answers_count: number;
+  is_answered: boolean;
+}
+
+export interface QuestionAnswer {
+  id: number;
+  body: string;
+  created_at: string;
+  author: QuestionAuthor | null;
+}
+
+export interface QuestionDetail {
+  id: number;
+  course_id: number;
+  title: string;
+  body: string;
+  created_at: string;
+  author: QuestionAuthor | null;
+  answers: QuestionAnswer[];
+}
+
+export const qnaApi = {
+  list: (courseId: number) =>
+    request<QuestionListItem[]>(`/courses/${courseId}/questions`),
+  create: (courseId: number, body: { title: string; body: string }) =>
+    request<{ id: number }>(`/courses/${courseId}/questions`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  detail: (questionId: number) =>
+    request<QuestionDetail>(`/questions/${questionId}`),
+  deleteQuestion: (questionId: number) =>
+    request<void>(`/questions/${questionId}`, { method: 'DELETE' }),
+  addAnswer: (questionId: number, body: { body: string }) =>
+    request<{ id: number }>(`/questions/${questionId}/answers`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  deleteAnswer: (answerId: number) =>
+    request<void>(`/answers/${answerId}`, { method: 'DELETE' }),
+};
+
+// ──────────────── Admin ────────────────
+export interface AdminStats {
+  users: { total: number; student: number; instructor: number; admin: number };
+  courses: { total: number };
+  enrollments: { total: number; completed: number };
+  payments: { total_completed: number; revenue: number };
+}
+
+export interface AdminUser {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  created_at: string;
+}
+
+export interface AdminAuditLog {
+  id: number;
+  actor_id: number | null;
+  actor_role: string | null;
+  action: string;
+  target_type: string | null;
+  target_id: number | null;
+  detail: string | null;
+  created_at: string;
+}
+
+export interface AdminPaymentRow {
+  id: number;
+  user_id: number;
+  total_amount: number;
+  status: string;
+  order_id: string | null;
+  payment_key: string | null;
+  method: string | null;
+  created_at: string;
+}
+
+interface Paginated<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export const adminApi = {
+  stats: () => request<AdminStats>('/admin/stats'),
+  users: (q?: { role?: string; q?: string; page?: number; limit?: number }) => {
+    const sp = new URLSearchParams();
+    if (q?.role) sp.set('role', q.role);
+    if (q?.q) sp.set('q', q.q);
+    if (q?.page) sp.set('page', String(q.page));
+    if (q?.limit) sp.set('limit', String(q.limit));
+    return request<Paginated<AdminUser>>(`/admin/users?${sp.toString()}`);
+  },
+  updateUserRole: (userId: number, role: 'student' | 'instructor' | 'admin') =>
+    request<{ id: number; role: string }>(`/admin/users/${userId}/role`, {
+      method: 'PATCH',
+      body: JSON.stringify({ role }),
+    }),
+  payments: (q?: { status?: string; page?: number; limit?: number }) => {
+    const sp = new URLSearchParams();
+    if (q?.status) sp.set('status', q.status);
+    if (q?.page) sp.set('page', String(q.page));
+    if (q?.limit) sp.set('limit', String(q.limit));
+    return request<Paginated<AdminPaymentRow>>(`/admin/payments?${sp.toString()}`);
+  },
+  logs: (q?: {
+    action?: string;
+    actor_id?: number;
+    from?: string;
+    to?: string;
+    page?: number;
+    limit?: number;
+  }) => {
+    const sp = new URLSearchParams();
+    if (q?.action) sp.set('action', q.action);
+    if (q?.actor_id != null) sp.set('actor_id', String(q.actor_id));
+    if (q?.from) sp.set('from', q.from);
+    if (q?.to) sp.set('to', q.to);
+    if (q?.page) sp.set('page', String(q.page));
+    if (q?.limit) sp.set('limit', String(q.limit));
+    return request<Paginated<AdminAuditLog>>(`/admin/logs?${sp.toString()}`);
+  },
+  logActions: () => request<string[]>('/admin/logs/actions'),
+};

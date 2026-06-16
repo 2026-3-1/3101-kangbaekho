@@ -10,6 +10,8 @@ import { Enrollment } from '../src/entities/enrollment.entity';
 import { CartItem } from '../src/entities/cart-item.entity';
 import { Payment } from '../src/entities/payment.entity';
 import { PaymentItem } from '../src/entities/payment-item.entity';
+import { IdempotencyKey } from '../src/entities/idempotency-key.entity';
+import { AuditLog } from '../src/entities/audit-log.entity';
 
 import { AuthModule } from '../src/auth/auth.module';
 import { CoursesModule } from '../src/courses/courses.module';
@@ -17,6 +19,9 @@ import { UsersModule } from '../src/users/users.module';
 import { EnrollmentsModule } from '../src/enrollments/enrollments.module';
 import { CartModule } from '../src/cart/cart.module';
 import { PaymentModule } from '../src/payment/payment.module';
+import { AuditModule } from '../src/audit/audit.module';
+import { CommonModule } from '../src/common/common.module';
+import { NotificationsModule } from '../src/notifications/notifications.module';
 
 process.env.JWT_SECRET = 'e2e_test_secret_key';
 process.env.DB_SYNCHRONIZE = 'true';
@@ -42,10 +47,22 @@ describe('수강 영상 + 진도율 E2E 테스트', () => {
         TypeOrmModule.forRoot({
           type: 'better-sqlite3',
           database: ':memory:',
-          entities: [User, Course, Enrollment, CartItem, Payment, PaymentItem],
+          entities: [
+            User,
+            Course,
+            Enrollment,
+            CartItem,
+            Payment,
+            PaymentItem,
+            IdempotencyKey,
+            AuditLog,
+          ],
           synchronize: true,
           dropSchema: true,
         }),
+        CommonModule,
+        NotificationsModule,
+        AuditModule,
         AuthModule,
         CoursesModule,
         UsersModule,
