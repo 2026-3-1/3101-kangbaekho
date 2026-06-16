@@ -9,7 +9,8 @@
       "Bash(export PATH=\"$HOME/.local/bin:$PATH\")",
       "Bash(npm --version)",
       "Bash(npx eslint *)",
-      "Bash(echo \"tsc rc=$?\")"
+      "Bash(echo \"tsc rc=$?\")",
+      "Bash(git push *)"
     ],
     "additionalDirectories": [
       "/home/baekho/.local"
