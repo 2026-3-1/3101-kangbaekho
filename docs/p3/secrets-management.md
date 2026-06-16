@@ -48,7 +48,7 @@
 
 | Secret | 기본값 | 설명 |
 |--------|--------|------|
-| `SSH_USER` | `ubuntu` | SSH 사용자명 |
+| `SSH_USER` | `ec2-user` (Amazon Linux) | Ubuntu AMI 면 `ubuntu` 로 등록 |
 | `SSH_PORT` | `22` | SSH 포트 |
 | `DEPLOY_PATH` | `/home/<SSH_USER>/ou` | 서버상 repo 경로 |
 | `DEPLOY_BRANCH` | `main` | 배포할 브랜치 |

@@ -10,9 +10,10 @@ name: CD (SSH password + git pull)
 #   SSH_PASSWORD   — SSH 사용자 비밀번호
 #
 # 선택 Secrets (없으면 기본값 사용):
-#   SSH_USER       — SSH 사용자 (기본 ubuntu)
+#   SSH_USER       — SSH 사용자 (기본 ec2-user · Amazon Linux 기준)
+#                     Ubuntu AMI 면 SSH_USER=ubuntu 로 등록
 #   SSH_PORT       — SSH 포트 (기본 22)
-#   DEPLOY_PATH    — 서버상 repo 경로 (기본 /home/ubuntu/ou)
+#   DEPLOY_PATH    — 서버상 repo 경로 (기본 /home/<SSH_USER>/ou)
 #   DEPLOY_BRANCH  — 배포할 브랜치 (기본 main)
 #
 # 서버 사전 준비:
@@ -51,7 +52,7 @@ jobs:
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
           DEPLOY_BRANCH: ${{ secrets.DEPLOY_BRANCH }}
         run: |
-          USER="${SSH_USER:-ubuntu}"
+          USER="${SSH_USER:-ec2-user}"
           PORT="${SSH_PORT:-22}"
           PATH_REMOTE="${DEPLOY_PATH:-/home/$USER/ou}"
           BRANCH="${DEPLOY_BRANCH:-main}"
