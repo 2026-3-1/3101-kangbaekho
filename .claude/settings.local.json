@@ -12,7 +12,9 @@
       "Bash(echo \"tsc rc=$?\")",
       "Bash(git push *)",
       "Bash(git commit -m 'test: drop nest boilerplate app.e2e-spec.ts \\(CI 에서 실제 MySQL 붙으려다 죽음\\) *)",
-      "Bash(git commit -m 'fix\\(cd\\): default SSH_USER 를 ec2-user 로 \\(Amazon Linux 기준\\) *)"
+      "Bash(git commit -m 'fix\\(cd\\): default SSH_USER 를 ec2-user 로 \\(Amazon Linux 기준\\) *)",
+      "Bash(git rev-list *)",
+      "Bash(git remote *)"
     ],
     "additionalDirectories": [
       "/home/baekho/.local"
