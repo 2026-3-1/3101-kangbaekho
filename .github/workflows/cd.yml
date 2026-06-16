@@ -106,6 +106,11 @@ jobs:
               echo "APP_VERSION=p3"
             } > .env
 
+            echo "==> docker compose down --remove-orphans (잔여 컨테이너 정리, 볼륨은 유지)"
+            docker compose down --remove-orphans 2>/dev/null || true
+            # container_name 으로 박힌 컨테이너가 다른 프로젝트로 남아있으면 강제 제거
+            docker rm -f ou-db ou-backend ou-frontend 2>/dev/null || true
+
             echo "==> docker compose up -d --build"
             docker compose up -d --build
 
