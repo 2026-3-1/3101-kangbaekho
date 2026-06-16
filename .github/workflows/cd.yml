@@ -16,13 +16,18 @@ name: CD (SSH password + git pull)
 #   DEPLOY_PATH    — 서버상 repo 경로 (기본 /home/<SSH_USER>/ou)
 #   DEPLOY_BRANCH  — 배포할 브랜치 (기본 main)
 #
-# 서버 사전 준비:
-#   1) git clone <this repo> $DEPLOY_PATH
-#   2) cp .env.example .env  →  실제 시크릿 값으로 채움
-#      (DB_PASSWORD / JWT_SECRET / TOSS_SECRET_KEY / SMTP_* 등)
-#   3) docker + docker compose plugin 설치
-#   4) PasswordAuthentication yes (sshd_config)  → sshd 재시작
-#   5) deploy 사용자가 docker 그룹 멤버
+# 서버 사전 준비 (수동 1회):
+#   1) docker + docker compose plugin 설치, deploy 사용자가 docker 그룹 멤버
+#   2) PasswordAuthentication yes (sshd_config)  → sshd 재시작
+#   3) cd $HOME && cp ou/.env.example ou/.env (워크플로우가 clone 한 뒤에)
+#      → 실제 시크릿 값으로 채움 (DB_PASSWORD / JWT_SECRET / TOSS_SECRET_KEY / SMTP_*)
+#
+# 워크플로우 동작:
+#   - DEPLOY_PATH 가 없으면 자동 clone
+#   - .env 가 없으면 .env.example 복사 (최초 1회). 사용자가 수정 후 다시 push 하면 됨.
+#
+# Repo URL 환경변수 (선택):
+#   REPO_URL — 기본은 GitHub Actions 의 현재 repo (https://github.com/<owner>/<repo>.git)
 
 on:
   workflow_dispatch:
@@ -43,7 +48,7 @@ jobs:
       - name: Install sshpass
         run: sudo apt-get update && sudo apt-get install -y sshpass
 
-      - name: Deploy via SSH (git pull + docker compose up)
+      - name: Deploy via SSH (clone if missing + git pull + docker compose up)
         env:
           SSHPASS: ${{ secrets.SSH_PASSWORD }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
@@ -51,6 +56,7 @@ jobs:
           SSH_PORT: ${{ secrets.SSH_PORT }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
           DEPLOY_BRANCH: ${{ secrets.DEPLOY_BRANCH }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
         run: |
           USER="${SSH_USER:-ec2-user}"
           PORT="${SSH_PORT:-22}"
@@ -62,18 +68,50 @@ jobs:
             exit 1
           fi
 
+          # heredoc 안에서는 호스트 변수 치환을 막기 위해 'EOSSH' 사용,
+          # 원격에서 사용할 값은 export 로 미리 넘긴다.
           sshpass -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-              -p "$PORT" "$USER@$SSH_HOST" bash -se <<EOSSH
+              -p "$PORT" "$USER@$SSH_HOST" \
+              "PATH_REMOTE='$PATH_REMOTE' BRANCH='$BRANCH' REPO_URL='$REPO_URL' bash -se" <<'EOSSH'
             set -euo pipefail
-            cd "$PATH_REMOTE"
-            echo "==> fetch & reset $BRANCH"
-            git fetch --all --prune
-            git checkout "$BRANCH"
-            git reset --hard "origin/$BRANCH"
+            echo "==> deploy_path=$PATH_REMOTE branch=$BRANCH repo=$REPO_URL"
+
+            if [ ! -d "$PATH_REMOTE/.git" ]; then
+              echo "==> first run: cloning into $PATH_REMOTE"
+              mkdir -p "$(dirname "$PATH_REMOTE")"
+              git clone "$REPO_URL" "$PATH_REMOTE"
+              cd "$PATH_REMOTE"
+              git checkout "$BRANCH" 2>/dev/null || git checkout -b "$BRANCH" "origin/$BRANCH"
+            else
+              cd "$PATH_REMOTE"
+              echo "==> fetch & reset $BRANCH"
+              git fetch --all --prune
+              git checkout "$BRANCH"
+              git reset --hard "origin/$BRANCH"
+            fi
+
+            echo "==> writing .env (배포마다 덮어씀)"
+            {
+              echo "DB_USERNAME=root"
+              echo "DB_PASSWORD=1234"
+              echo "DB_DATABASE=online_course"
+              echo "DB_SYNCHRONIZE=true"
+              echo "JWT_SECRET=jwt_secret_key_p2_online_course_2024"
+              echo "TOSS_SECRET_KEY=test_sk_zXLkKEypNArWmo50nX3lmeaxYG5R"
+              echo "SMTP_HOST="
+              echo "SMTP_PORT=587"
+              echo "SMTP_USER="
+              echo "SMTP_PASS="
+              echo "MAIL_FROM=no-reply@online-course.local"
+              echo "APP_VERSION=p3"
+            } > .env
+
             echo "==> docker compose up -d --build"
             docker compose up -d --build
+
             echo "==> prune dangling images"
             docker image prune -f
+
             echo "==> health check"
             for i in 1 2 3 4 5 6 7 8 9 10; do
               if curl -fsS http://localhost:3000/healthz >/dev/null 2>&1; then
@@ -83,7 +121,7 @@ jobs:
               sleep 3
             done
             echo "healthz FAILED" >&2
-            docker compose logs --tail=200 backend
+            docker compose logs --tail=200 backend || true
             exit 1
           EOSSH
 
